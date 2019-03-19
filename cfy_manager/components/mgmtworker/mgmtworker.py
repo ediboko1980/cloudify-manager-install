@@ -59,7 +59,7 @@ class MgmtWorkerComponent(BaseComponent):
         config[MGMTWORKER][SERVICE_GROUP] = const.CLOUDIFY_GROUP
         if config[CLUSTER]:
             config[MGMTWORKER][CLUSTER_SERVICE_QUEUE] = \
-                'service_queue_{0}'.format(config[MANAGER][HOSTNAME])
+                'cluster_service_queue_{0}'.format(config[MANAGER][HOSTNAME])
 
         self._deploy_broker_config()
         self._deploy_hooks_config()
