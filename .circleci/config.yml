@@ -70,7 +70,8 @@ jobs:
           destination: /
 
   install_manager:
-    machine: true
+    machine:
+      image: ubuntu-1604:201903-01
     environment:
       CONTAINER_NAME: cfy_manager
       IMAGE_NAME: cfy_manager_image
