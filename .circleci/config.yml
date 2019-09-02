@@ -109,8 +109,12 @@ jobs:
       - run:
           name: cfy_manager install
           command: |
-            CONTAINER_IP=$(podman inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_ID})
-            echo "ID ${CONTAINER_ID}, IP: ${CONTAINER_IP}"
+            CONTAINER_IP=""
+            while [ -z "${CONTAINER_IP}" ]; do
+              sleep 1
+              CONTAINER_IP=$(podman inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_ID})
+              echo "ID ${CONTAINER_ID}, IP: ${CONTAINER_IP}"
+            done
             podman inspect ${CONTAINER_ID}
             podman exec ${CONTAINER_ID} mkdir -p /opt/tmp
             podman exec ${CONTAINER_ID} chmod a+wx /opt/tmp
