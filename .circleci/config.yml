@@ -111,6 +111,7 @@ jobs:
           command: |
             CONTAINER_IP=$(podman inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_ID})
             echo "ID ${CONTAINER_ID}, IP: ${CONTAINER_IP}"
+            podman inspect ${CONTAINER_ID}
             podman exec ${CONTAINER_ID} mkdir -p /opt/tmp
             podman exec ${CONTAINER_ID} chmod a+wx /opt/tmp
             podman exec ${CONTAINER_ID} sed -i 's/skip_sanity: false/skip_sanity: true/g' /etc/cloudify/config.yaml
