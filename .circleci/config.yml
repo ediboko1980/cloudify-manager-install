@@ -111,7 +111,7 @@ jobs:
           command: |
             CONTAINER_IP=$(podman inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_ID})
             podman exec ${CONTAINER_ID} mkdir -p /opt/tmp
-            podman exec ${CONTAINER_ID} mkdir chmod a+wx /opt/tmp
+            podman exec ${CONTAINER_ID} chmod a+wx /opt/tmp
             podman exec ${CONTAINER_ID} sed -i 's/skip_sanity: false/skip_sanity: true/g' /etc/cloudify/config.yaml
             podman exec -e TMPDIR=/opt/tmp ${CONTAINER_ID} cfy_manager install --private-ip ${CONTAINER_IP} --public-ip ${CONTAINER_IP}
 
