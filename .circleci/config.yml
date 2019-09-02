@@ -98,13 +98,10 @@ jobs:
               buildah build-using-dockerfile -t cloudify-manager-base .
             popd
       - run:
-          name: workaround
+          name: run container
           command: |
             sudo modprobe tun
             sudo chmod 666 /dev/net/tun
-      - run:
-          name: run container
-          command: |
             CONTAINER_ID=$(podman run -v /tmp/workspace:/tmp/workspace:ro  --systemd -d  cloudify-manager-base /sbin/init)
             echo "export CONTAINER_ID=${CONTAINER_ID}" >> $BASH_ENV
       - run:
