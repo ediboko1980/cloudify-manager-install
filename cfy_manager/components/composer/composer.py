@@ -93,17 +93,6 @@ class Composer(BaseComponent):
         systemd.verify_alive(COMPOSER)
         wait_for_port(COMPOSER_PORT)
 
-    def _start_and_validate_composer(self):
-        # Used in the service template
-        config[COMPOSER][SERVICE_USER] = COMPOSER_USER
-        config[COMPOSER][SERVICE_GROUP] = COMPOSER_GROUP
-        systemd.configure(COMPOSER,
-                          user=COMPOSER_USER, group=COMPOSER_GROUP)
-
-        logger.info('Starting Composer service...')
-        systemd.restart(COMPOSER)
-        self._verify_composer_alive()
-
     def _run_db_migrate(self):
         if config[CLUSTER_JOIN]:
             logger.debug('Joining cluster - not creating the composer db')
@@ -226,11 +215,6 @@ class Composer(BaseComponent):
             allow_as=COMPOSER_USER,
         )
 
-    def _configure(self):
-        self._update_composer_config()
-        self._run_db_migrate()
-        self._start_and_validate_composer()
-
     def install(self):
         if config[COMPOSER]['skip_installation']:
             logger.notice('Skipping Cloudify Composer installation.')
@@ -241,7 +225,11 @@ class Composer(BaseComponent):
 
     def configure(self):
         logger.notice('Configuring Cloudify Composer...')
-        self._configure()
+        self._update_composer_config()
+        config[COMPOSER][SERVICE_USER] = COMPOSER_USER
+        config[COMPOSER][SERVICE_GROUP] = COMPOSER_GROUP
+        systemd.configure(COMPOSER,
+                          user=COMPOSER_USER, group=COMPOSER_GROUP)
         logger.notice('Cloudify Composer successfully configured')
 
     def remove(self):
@@ -254,6 +242,7 @@ class Composer(BaseComponent):
 
     def start(self):
         logger.notice('Starting Cloudify Composer...')
+        self._run_db_migrate()
         systemd.start(COMPOSER)
         self._verify_composer_alive()
         logger.notice('Cloudify Composer successfully started')

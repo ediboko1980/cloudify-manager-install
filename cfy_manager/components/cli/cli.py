@@ -70,7 +70,7 @@ class Cli(BaseComponent):
         set_cmd = [
             'cfy', 'profiles', 'set', '-u', username,
             '-p', password, '-t', 'default_tenant',
-            '-c', cert_path, '--ssl', ssl_enabled
+            '-c', cert_path, '--ssl', ssl_enabled,
         ]
 
         current_user = getuser()
@@ -98,7 +98,7 @@ class Cli(BaseComponent):
         self._install()
         logger.notice('Cloudify CLI successfully installed')
 
-    def configure(self):
+    def start(self):
         logger.notice('Configuring Cloudify CLI...')
         self._configure()
         logger.notice('Cloudify CLI successfully configured')

@@ -257,7 +257,6 @@ class Nginx(BaseComponent):
     def _configure(self):
         self._handle_certs()
         self._deploy_nginx_config_files()
-        self._start_and_verify_service()
 
     def install(self):
         logger.notice('Installing NGINX...')
@@ -285,8 +284,7 @@ class Nginx(BaseComponent):
 
     def start(self):
         logger.notice('Starting NGINX...')
-        systemd.start(NGINX, append_prefix=False)
-        systemd.verify_alive(NGINX, append_prefix=False)
+        self._start_and_verify_service()
         logger.notice('NGINX successfully started')
 
     def stop(self):

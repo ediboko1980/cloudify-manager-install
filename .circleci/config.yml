@@ -105,6 +105,24 @@ jobs:
             cd packaging/docker
             chmod +x install_manager.sh
             ./install_manager.sh
+  build_image:
+    machine: true
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: docker build
+          command: |
+            pushd packaging/new_docker
+              cp /tmp/workspace/x86_64/*.rpm cloudify-manager-install.rpm
+              docker build -t cloudify-manager .
+            popd
+      - run:
+          name: run container
+          command: |
+            docker run --name cloudify-manager -d -v /tmp/workspace:/tmp/workspace:ro -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN cloudify-manager
+            docker exec cloudify-manager cfy_manager start
 
   install_cluster:
     machine: true
@@ -247,6 +265,9 @@ workflows:
           requires:
             - fetch_rpms
             - build_executable
+      - build_image:
+          requires:
+            - build_rpm
       - install_manager:
           requires:
             - build_rpm

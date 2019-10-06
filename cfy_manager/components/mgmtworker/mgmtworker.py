@@ -96,7 +96,6 @@ class MgmtWorker(BaseComponent):
                 'cluster_service_queue_{0}'.format(config[MANAGER][HOSTNAME])
 
         self._deploy_hooks_config()
-        self._deploy_admin_token()
 
     def _deploy_admin_token(self):
         script_name = 'create-admin-token.py'
@@ -146,14 +145,9 @@ class MgmtWorker(BaseComponent):
         systemd.verify_alive(MGMTWORKER)
 
     def _configure(self):
-        if self.is_premium_installed():
-            cluster = Cluster(skip_installation=False)
-            cluster.configure()
         self._deploy_mgmtworker_config()
         systemd.configure(MGMTWORKER)
         self._prepare_snapshot_permissions()
-        systemd.restart(MGMTWORKER)
-        self._verify_mgmtworker_alive()
 
     def install(self):
         logger.notice('Installing Management Worker...')
@@ -188,6 +182,10 @@ class MgmtWorker(BaseComponent):
 
     def start(self):
         logger.notice('Starting Management Worker...')
+        if self.is_premium_installed():
+            cluster = Cluster(skip_installation=False)
+            cluster.configure()
+        self._deploy_admin_token()
         systemd.start(MGMTWORKER)
         self._verify_mgmtworker_alive()
         logger.notice('Management Worker successfully started')

@@ -70,8 +70,6 @@ class SystemD(object):
         logger.debug('Enabling systemd .service...')
         self.systemctl('enable', '{0}.service'.format(sid))
 
-        self.systemctl('daemon-reload')
-
     def remove(self, service_name, service_file=True, append_prefix=True):
         """Stop and disable the service, and then delete its data
         """

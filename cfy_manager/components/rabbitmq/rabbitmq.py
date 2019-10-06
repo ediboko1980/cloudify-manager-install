@@ -87,12 +87,11 @@ class RabbitMQ(BaseComponent):
         remove_file('/var/lib/rabbitmq/mnesia')
         remove_file(rabbit_config_path)
         self._deploy_configuration()
-        systemd.systemctl('daemon-reload')
 
         # rabbitmq restart exits with 143 status code that is valid in
         # this case.
-        systemd.restart(RABBITMQ, ignore_failure=True)
-        wait_for_port(SECURE_PORT)
+        # systemd.restart(RABBITMQ, ignore_failure=True)
+        # wait_for_port(SECURE_PORT)
 
     def _rabbitmqctl(self, command, **kwargs):
         nodename = config[RABBITMQ]['nodename']
@@ -493,12 +492,6 @@ class RabbitMQ(BaseComponent):
             }
         self._generate_rabbitmq_certs()
         self._init_service()
-        if not config[RABBITMQ]['join_cluster']:
-            # Users will be synced with the cluster if we're joining one
-            self._manage_users()
-        self._start_rabbitmq()
-        self._validate_rabbitmq_running()
-        self._possibly_join_cluster()
 
     def install(self):
         logger.notice('Installing RabbitMQ...')
@@ -523,8 +516,12 @@ class RabbitMQ(BaseComponent):
 
     def start(self):
         logger.notice('Starting RabbitMQ...')
-        systemd.start(RABBITMQ)
+        self._start_rabbitmq()
         self._validate_rabbitmq_running()
+        if not config[RABBITMQ]['join_cluster']:
+            # Users will be synced with the cluster if we're joining one
+            self._manage_users()
+        self._possibly_join_cluster()
         logger.notice('RabbitMQ successfully started')
 
     def stop(self):

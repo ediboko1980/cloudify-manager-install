@@ -1,0 +1,15 @@
+manager:
+  private_ip: '127.0.0.1'
+  public_ip: '127.0.0.1'
+  hostname: 'localhost'
+  cli_local_profile_host_name: 'localhost'
+  premium_edition: false
+  set_manager_ip_on_boot: true
+
+sanity:
+  skip_sanity: true
+
+services_to_install:
+- database_service
+- queue_service
+- manager_service
