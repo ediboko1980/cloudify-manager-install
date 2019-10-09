@@ -324,7 +324,8 @@ def ensure_running():
         common.sudo([
             '-upostgres', '/bin/bash', '-c',
             '{0} start -D /var/lib/pgsql/9.5/data'.format(pg_ctl)
-        ])
+        ], wait=False)
+    time.sleep(3)
     try:
         yield
     finally:
