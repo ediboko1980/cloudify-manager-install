@@ -243,20 +243,28 @@ class RestService(BaseComponent):
             'security_config': REST_SECURITY_CONFIG_PATH
         }
         config[CLUSTER_JOIN] = False
+        logger.info('_configure_db')
+        with db.ensure_running():
+            logger.info('db up')
+            if config[CLEAN_DB]:
+                logger.info('drop db')
+                db.drop_db()
 
-        if config[CLEAN_DB]:
-            db.drop_db()
-
-        if not db.check_db_exists():
-            self._initialize_db(configs)
-        else:
-            if db.manager_is_in_db():
-                logger.warn(
-                    'Manager found in DB. Skipping DB configuration.'
-                )
-                db.create_amqp_resources(configs)
+            logger.info('check exists')
+            if not db.check_db_exists():
+                logger.info('initialize db')
+                self._initialize_db(configs)
             else:
-                self._join_cluster(configs)
+                logger.info('exists!')
+                if db.manager_is_in_db():
+                    logger.warn(
+                        'Manager found in DB. Skipping DB configuration.'
+                    )
+                    db.create_amqp_resources(configs)
+                else:
+                    self._join_cluster(configs)
+            logger.info('done')
+        logger.info('stopped')
 
     def _initialize_db(self, configs):
         logger.info('DB not initialized, creating DB...')
@@ -416,7 +424,10 @@ class RestService(BaseComponent):
         self._make_paths()
         self._configure_restservice()
         systemd.configure(RESTSERVICE)
-
+        self._configure_db()
+        if config[POSTGRESQL_CLIENT][SERVER_PASSWORD]:
+            logger.info('Removing postgres password from config.yaml')
+            config[POSTGRESQL_CLIENT][SERVER_PASSWORD] = '<removed>'
         logger.notice('Rest Service successfully configured')
 
     def remove(self):
@@ -440,11 +451,7 @@ class RestService(BaseComponent):
 
     def start(self):
         logger.notice('Starting Restservice...')
-        self._configure_db()
-        if config[POSTGRESQL_CLIENT][SERVER_PASSWORD]:
-            logger.info('Removing postgres password from config.yaml')
-            config[POSTGRESQL_CLIENT][SERVER_PASSWORD] = '<removed>'
-        systemd.restart(RESTSERVICE)
+        systemd.start(RESTSERVICE)
         if config[CLUSTER_JOIN]:
             logger.info('Extra node in cluster, will verify rest-service '
                         'after clustering configured')

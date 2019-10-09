@@ -13,6 +13,7 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+from contextlib import contextmanager
 from os.path import join
 import time
 
@@ -45,6 +46,7 @@ from ...logger import get_logger
 
 from ...utils import common
 from ...utils.files import temp_copy, write_to_tempfile
+from ...utils.systemd import systemd
 
 logger = get_logger('DB')
 
@@ -310,3 +312,22 @@ def _log_results(result):
         output = [line.strip() for line in output if line.strip()]
         for line in output:
             logger.error(line)
+
+
+@contextmanager
+def ensure_running():
+    pg_ctl = '/usr/pgsql-9.5/bin/pg_ctl'
+    already_running = systemd.is_alive('postgresql-9.5')
+    try:
+        if not already_running:
+            common.sudo([
+                'sudo', '-u', 'postgres', pg_ctl, 'start',
+                '-D', '/var/lib/pgsql/9.5/data'
+            ])
+        yield
+    finally:
+        if not already_running:
+            common.sudo([
+                'sudo', '-u', 'postgres', pg_ctl, 'stop',
+                '-D', '/var/lib/pgsql/9.5/data'
+            ])
