@@ -44,7 +44,7 @@ CA_CERT_PATH = '/etc/cloudify/ssl/cloudify_internal_ca_cert.pem'
 class MockAMQPManager(AMQPManager):
     def __init__(self):
         self._data = {
-            'vhosts': [],
+            'vhosts': [{'name': '/'}],
             'users': [],
             'permissions': []
         }
@@ -71,9 +71,16 @@ class MockAMQPManager(AMQPManager):
         })
         self._data['permissions'].append({
             'user': username,
-            'vhost': vhost,
+            'vhost': '/',
             'configure': '^cloudify-(events-topic|events|logs|monitoring)$',
             'write': '^cloudify-(events-topic|events|logs|monitoring)$',
+            'read': '.*'
+        })
+        self._data['permissions'].append({
+            'user': username,
+            'vhost': vhost,
+            'configure': '.*',
+            'write': '.*',
             'read': '.*'
         })
         return tenant
