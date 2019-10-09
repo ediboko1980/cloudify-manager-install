@@ -15,15 +15,19 @@
 #  * limitations under the License.
 
 import argparse
-import atexit
+import base64
 import json
+import hashlib
 import logging
 import os
 import subprocess
-import tempfile
 from datetime import datetime
 
 from flask_migrate import upgrade
+
+from cloudify.cryptography_utils import encrypt, decrypt
+from cloudify.rabbitmq_client import USERNAME_PATTERN
+from cloudify.utils import generate_user_password
 
 from manager_rest import config, version
 from manager_rest.storage import db, models, get_storage_manager  # NOQA
@@ -35,6 +39,52 @@ from manager_rest.storage.storage_utils import \
 logger = \
     logging.getLogger('[{0}]'.format('create_tables_and_add_defaults'.upper()))
 CA_CERT_PATH = '/etc/cloudify/ssl/cloudify_internal_ca_cert.pem'
+
+
+class MockAMQPManager(AMQPManager):
+    def __init__(self):
+        self._data = {
+            'vhosts': [],
+            'users': [],
+            'permissions': []
+        }
+
+    def create_tenant_vhost_and_user(self, tenant):
+        vhost = tenant.rabbitmq_vhost or \
+            self.VHOST_NAME_PATTERN.format(tenant.name)
+        username = tenant.rabbitmq_username or \
+            USERNAME_PATTERN.format(tenant.name)
+        new_password = generate_user_password()
+        password = decrypt(tenant.rabbitmq_password) \
+            if tenant.rabbitmq_password else new_password
+        encrypted_password = tenant.rabbitmq_password or \
+            encrypt(new_password)
+        tenant.rabbitmq_vhost = vhost
+        tenant.rabbitmq_username = username
+        tenant.rabbitmq_password = encrypted_password
+
+        self._data['vhosts'].append({'name': vhost})
+        self._data['users'].append({
+            'name': username,
+            'password_hash': self._rabbitmq_hash(password),
+            'tags': ''
+        })
+        self._data['permissions'].append({
+            'user': username,
+            'vhost': vhost,
+            'configure': '^cloudify-(events-topic|events|logs|monitoring)$',
+            'write': '^cloudify-(events-topic|events|logs|monitoring)$',
+            'read': '.*'
+        })
+        return tenant
+
+    def _rabbitmq_hash(self, password):
+        salt = os.urandom(4)
+        hashed = hashlib.sha256(salt + password.encode('utf-8')).digest()
+        return base64.b64encode(salt + hashed)
+
+    def dump(self, f):
+        json.dump(self._data, f)
 
 
 def _init_db_tables(db_migrate_dir):
@@ -54,19 +104,6 @@ def _add_default_user_and_tenant(amqp_manager, script_config):
         admin_password=script_config['admin_password'],
         amqp_manager=amqp_manager,
         authorization_file_path=script_config['authorization_file_path']
-    )
-
-
-def _get_amqp_manager(script_config):
-    with tempfile.NamedTemporaryFile(delete=False, mode='wb') as f:
-        f.write(script_config['rabbitmq_ca_cert'])
-    broker = script_config['rabbitmq_brokers'][0]
-    atexit.register(os.unlink, f.name)
-    return AMQPManager(
-        host=broker['management_host'],
-        username=broker['username'],
-        password=broker['password'],
-        verify=f.name
     )
 
 
@@ -174,8 +211,10 @@ if __name__ == '__main__':
         _init_db_tables(script_config['db_migrate_dir'])
     if script_config.get('admin_username') and \
             script_config.get('admin_password'):
-        amqp_manager = _get_amqp_manager(script_config)
+        amqp_manager = MockAMQPManager()
         _add_default_user_and_tenant(amqp_manager, script_config)
+        with open('/tmp/tenant-details.json', 'w') as f:
+            amqp_manager.dump(f)
     if script_config.get('config'):
         _insert_config(script_config['config'])
     if script_config.get('rabbitmq_brokers'):
