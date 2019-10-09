@@ -477,9 +477,7 @@ class RabbitMQ(BaseComponent):
 
     def start(self):
         logger.notice('Starting RabbitMQ...')
-        # rabbitmq restart exits with 143 status code that is valid
-        # in this case.
-        systemd.start(RABBITMQ, ignore_failure=True)
+        systemd.start(RABBITMQ)
         wait_for_port(SECURE_PORT)
         self._validate_rabbitmq_running()
         if config[RABBITMQ]['join_cluster']:
