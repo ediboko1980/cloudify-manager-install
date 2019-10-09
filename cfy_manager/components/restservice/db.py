@@ -322,7 +322,8 @@ def ensure_running():
     already_running = systemd.is_alive('postgresql-9.5')
     if not already_running:
         common.sudo([
-            '-upostgres', pg_ctl, 'start', '-D', '/var/lib/pgsql/9.5/data'
+            '-upostgres', '/bin/bash', '-c',
+            '{0} start -D /var/lib/pgsql/9.5/data'.format(pg_ctl)
         ])
     try:
         yield
