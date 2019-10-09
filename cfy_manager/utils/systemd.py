@@ -153,6 +153,11 @@ class SystemD(object):
         self.systemctl('restart', full_service_name, retries,
                        ignore_failure=ignore_failure)
 
+    def reload(self, service_name, append_prefix=True):
+        full_service_name = self._get_full_service_name(service_name,
+                                                        append_prefix)
+        self.systemctl('reload', full_service_name)
+
     def is_alive(self, service_name, append_prefix=True):
         service_name = self._get_full_service_name(service_name, append_prefix)
         result = self.systemctl('status', service_name, ignore_failure=True)

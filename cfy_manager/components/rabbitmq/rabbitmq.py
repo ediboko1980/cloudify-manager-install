@@ -169,12 +169,6 @@ class RabbitMQ(BaseComponent):
             write_to_file(cookie.strip(), '/var/lib/rabbitmq/.erlang.cookie')
             sudo(['chown', 'rabbitmq.', '/var/lib/rabbitmq/.erlang.cookie'])
 
-    def _possibly_join_cluster(self):
-        join_node = config[RABBITMQ]['join_cluster']
-        if not join_node:
-            return
-        self.join_cluster(join_node)
-
     def join_cluster(self, join_node, restore_users_on_fail=False):
         join_node = self.add_missing_nodename_prefix(join_node)
         joined = False
@@ -431,39 +425,6 @@ class RabbitMQ(BaseComponent):
             sign_key=sign_key,
         )
 
-    def _set_rabbitmq_policy(self, name, expression, policy, priority):
-        policy = json.dumps(policy)
-        logger.debug('Setting policy {0} on queues {1} to {2}'.format(
-            name, expression, policy))
-        # shlex screws this up because we need to pass json and shlex
-        # strips quotes so we explicitly pass it as a list.
-        self._rabbitmqctl(['set_policy',
-                           name,
-                           expression,
-                           policy,
-                           '--apply-to',
-                           'queues',
-                           '--priority',
-                           str(priority)])
-
-    def _set_policies(self):
-        policies = config[RABBITMQ]['policies']
-        logger.info("Setting RabbitMQ Policies...")
-        for policy in policies:
-            self._set_rabbitmq_policy(**policy)
-        logger.info("RabbitMQ policies configured.")
-
-    def _start_rabbitmq(self):
-        logger.info("Starting RabbitMQ Service...")
-        # rabbitmq restart exits with 143 status code that is valid
-        # in this case.
-        systemd.restart(RABBITMQ, ignore_failure=True)
-        wait_for_port(SECURE_PORT)
-        if not config[RABBITMQ]['join_cluster']:
-            # Policies will be obtained from the cluster if we're joining
-            self._set_policies()
-            systemd.restart(RABBITMQ)
-
     def _validate_rabbitmq_running(self):
         logger.info('Making sure RabbitMQ is live...')
         systemd.verify_alive(RABBITMQ)
@@ -516,12 +477,16 @@ class RabbitMQ(BaseComponent):
 
     def start(self):
         logger.notice('Starting RabbitMQ...')
-        self._start_rabbitmq()
+        # rabbitmq restart exits with 143 status code that is valid
+        # in this case.
+        systemd.start(RABBITMQ, ignore_failure=True)
+        wait_for_port(SECURE_PORT)
         self._validate_rabbitmq_running()
-        if not config[RABBITMQ]['join_cluster']:
+        if config[RABBITMQ]['join_cluster']:
+            self.join_cluster(config[RABBITMQ]['join_cluster'])
+        else:
             # Users will be synced with the cluster if we're joining one
             self._manage_users()
-        self._possibly_join_cluster()
         logger.notice('RabbitMQ successfully started')
 
     def stop(self):

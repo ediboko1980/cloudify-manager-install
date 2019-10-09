@@ -159,6 +159,11 @@ def _create_args_dict():
             }
             for name, broker in config[RABBITMQ]['cluster_members'].items()
         ],
+        'amqp': {
+            'policies': config[RABBITMQ]['policies'],
+            'username': config[RABBITMQ]['username'],
+            'password': config[RABBITMQ]['password']
+        }
     }
     rabbitmq_ca_cert_path = config['rabbitmq'].get('ca_path')
     if rabbitmq_ca_cert_path:

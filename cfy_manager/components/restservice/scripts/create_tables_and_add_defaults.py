@@ -42,11 +42,40 @@ CA_CERT_PATH = '/etc/cloudify/ssl/cloudify_internal_ca_cert.pem'
 
 
 class MockAMQPManager(AMQPManager):
-    def __init__(self):
+    def __init__(self, config):
+        self._admin_username = config['username']
         self._data = {
             'vhosts': [{'name': '/'}],
-            'users': [],
-            'permissions': []
+            'users': [
+                {
+                    'hashing_algorithm': 'rabbit_password_hashing_sha256',
+                    'name': self._admin_username,
+                    'password_hash': self._rabbitmq_hash(config['password']),
+                    'tags': 'administrator'
+                },
+            ],
+            'permissions': [
+                {
+                    'user': self._admin_username,
+                    'vhost': '/',
+                    'configure': '.*',
+                    'write': '.*',
+                    'read': '.*'
+                },
+
+            ],
+            'policies': [self._format_policy(p) for p in config['policies']]
+        }
+
+    def _format_policy(self, policy):
+        return {
+            'name': policy['name'],
+            'vhost': policy.get('vhost', '/'),
+            'pattern': policy['expression'],
+            'priority': policy.get('priority', 1),
+            'apply-to': (policy.get('apply-to') or
+                         policy.get('apply_to') or 'queues'),
+            'definition': policy['policy']
         }
 
     def create_tenant_vhost_and_user(self, tenant):
@@ -67,6 +96,7 @@ class MockAMQPManager(AMQPManager):
         self._data['users'].append({
             'name': username,
             'password_hash': self._rabbitmq_hash(password),
+            'hashing_algorithm': 'rabbit_password_hashing_sha256',
             'tags': ''
         })
         self._data['permissions'].append({
@@ -78,6 +108,13 @@ class MockAMQPManager(AMQPManager):
         })
         self._data['permissions'].append({
             'user': username,
+            'vhost': vhost,
+            'configure': '.*',
+            'write': '.*',
+            'read': '.*'
+        })
+        self._data['permissions'].append({
+            'user': self._admin_username,
             'vhost': vhost,
             'configure': '.*',
             'write': '.*',
@@ -218,7 +255,7 @@ if __name__ == '__main__':
         _init_db_tables(script_config['db_migrate_dir'])
     if script_config.get('admin_username') and \
             script_config.get('admin_password'):
-        amqp_manager = MockAMQPManager()
+        amqp_manager = MockAMQPManager(script_config['amqp'])
         _add_default_user_and_tenant(amqp_manager, script_config)
         with open('/tmp/tenant-details.json', 'w') as f:
             amqp_manager.dump(f)
