@@ -321,13 +321,11 @@ def ensure_running():
     try:
         if not already_running:
             common.sudo([
-                'sudo', '-u', 'postgres', pg_ctl, 'start',
-                '-D', '/var/lib/pgsql/9.5/data'
+                '-upostgres', pg_ctl, 'start', '-D', '/var/lib/pgsql/9.5/data'
             ])
         yield
     finally:
         if not already_running:
             common.sudo([
-                'sudo', '-u', 'postgres', pg_ctl, 'stop',
-                '-D', '/var/lib/pgsql/9.5/data'
+                '-upostgres', pg_ctl, 'stop', '-D', '/var/lib/pgsql/9.5/data'
             ])
