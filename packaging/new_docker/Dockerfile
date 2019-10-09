@@ -30,5 +30,5 @@ COPY cloudify-manager-install.rpm /tmp/cloudify-manager-install.rpm
 RUN yum install -y /tmp/cloudify-manager-install.rpm
 COPY config.yaml /etc/cloudify/config.yaml
 RUN cfy_manager install --only-install --verbose
-#RUN cfy_manager configure --verbose
+RUN cfy_manager configure --verbose
 CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
