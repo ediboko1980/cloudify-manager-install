@@ -318,11 +318,11 @@ def _log_results(result):
 def ensure_running():
     pg_ctl = '/usr/pgsql-9.5/bin/pg_ctl'
     already_running = systemd.is_alive('postgresql-9.5')
+    if not already_running:
+        common.sudo([
+            '-upostgres', pg_ctl, 'start', '-D', '/var/lib/pgsql/9.5/data'
+        ])
     try:
-        if not already_running:
-            common.sudo([
-                '-upostgres', pg_ctl, 'start', '-D', '/var/lib/pgsql/9.5/data'
-            ])
         yield
     finally:
         if not already_running:
