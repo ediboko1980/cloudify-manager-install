@@ -275,8 +275,9 @@ if __name__ == '__main__':
         else:
             amqp_manager = _get_amqp_manager(script_config)
         _add_default_user_and_tenant(amqp_manager, script_config)
-        with open('/tmp/tenant-details.json', 'w') as f:
-            amqp_manager.dump(f)
+        if script_config['amqp']['local']:
+            with open('/tmp/tenant-details.json', 'w') as f:
+                amqp_manager.dump(f)
     if script_config.get('config'):
         _insert_config(script_config['config'])
     if script_config.get('rabbitmq_brokers'):
