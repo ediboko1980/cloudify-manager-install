@@ -326,7 +326,7 @@ def ensure_running():
     pg_ctl = '/usr/pgsql-9.5/bin/pg_ctl'
     should_start = DATABASE_SERVICE in config[SERVICES_TO_INSTALL] and \
         not systemd.is_alive('postgresql-9.5')
-    if not should_start:
+    if should_start:
         common.sudo([
             '-upostgres', '/bin/bash', '-c',
             '{0} start -D /var/lib/pgsql/9.5/data'.format(pg_ctl)
@@ -335,7 +335,7 @@ def ensure_running():
     try:
         yield
     finally:
-        if not should_start:
+        if should_start:
             common.sudo([
                 '-upostgres', pg_ctl, 'stop', '-D', '/var/lib/pgsql/9.5/data'
             ])
