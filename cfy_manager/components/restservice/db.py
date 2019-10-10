@@ -32,7 +32,7 @@ from ..components_constants import (
     SSL_ENABLED,
 )
 
-from ..service_components import DATABASE_SERVICE
+from ..service_components import DATABASE_SERVICE, QUEUE_SERVICE
 from ..service_names import (
     MANAGER,
     POSTGRESQL_CLIENT,
@@ -160,6 +160,7 @@ def _create_args_dict():
             for name, broker in config[RABBITMQ]['cluster_members'].items()
         ],
         'amqp': {
+            'local': QUEUE_SERVICE in config[SERVICES_TO_INSTALL],
             'policies': config[RABBITMQ]['policies'],
             'username': config[RABBITMQ]['username'],
             'password': config[RABBITMQ]['password']

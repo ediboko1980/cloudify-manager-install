@@ -15,12 +15,14 @@
 #  * limitations under the License.
 
 import argparse
+import atexit
 import base64
 import json
 import hashlib
 import logging
 import os
 import subprocess
+import tempfile
 from datetime import datetime
 
 from flask_migrate import upgrade
@@ -231,6 +233,19 @@ def _add_provider_context(context):
     sm.put(provider_context)
 
 
+def _get_amqp_manager(script_config):
+    with tempfile.NamedTemporaryFile(delete=False, mode='wb') as f:
+        f.write(script_config['rabbitmq_ca_cert'])
+    broker = script_config['rabbitmq_brokers'][0]
+    atexit.register(os.unlink, f.name)
+    return AMQPManager(
+        host=broker['management_host'],
+        username=broker['username'],
+        password=broker['password'],
+        verify=f.name
+    )
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Create SQL DB tables and populate them with defaults'
@@ -255,7 +270,10 @@ if __name__ == '__main__':
         _init_db_tables(script_config['db_migrate_dir'])
     if script_config.get('admin_username') and \
             script_config.get('admin_password'):
-        amqp_manager = MockAMQPManager(script_config['amqp'])
+        if script_config['amqp']['local']:
+            amqp_manager = MockAMQPManager(script_config['amqp'])
+        else:
+            amqp_manager = _get_amqp_manager(script_config)
         _add_default_user_and_tenant(amqp_manager, script_config)
         with open('/tmp/tenant-details.json', 'w') as f:
             amqp_manager.dump(f)
