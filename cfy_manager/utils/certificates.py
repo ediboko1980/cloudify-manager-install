@@ -19,13 +19,13 @@ import json
 import socket
 from contextlib import contextmanager
 
-from . import systemd
 from .common import sudo, remove, chown, copy
 from ..components.components_constants import SSL_INPUTS
 from ..config import config
 from ..constants import SSL_CERTS_TARGET_DIR, CLOUDIFY_USER, CLOUDIFY_GROUP
 from ..exceptions import ProcessExecutionError
 from .files import write_to_file, write_to_tempfile
+from .systemd import systemd
 from ..components.validations import check_certificates
 
 from ..logger import get_logger

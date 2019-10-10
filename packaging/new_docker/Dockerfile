@@ -29,8 +29,7 @@ STOPSIGNAL SIGRTMIN+3
 RUN systemctl set-default multi-user.target ; systemctl enable crond
 VOLUME [ "/sys/fs/cgroup" ]
 COPY $rpm_file /tmp/cloudify-manager-install.rpm
-RUN yum install -y /tmp/cloudify-manager-install.rpm
-RUN rm /tmp/cloudify-manager-install.rpm
+RUN yum install -y /tmp/cloudify-manager-install.rpm && rm /tmp/cloudify-manager-install.rpm
 COPY config.yaml /etc/cloudify/config.yaml
 RUN cfy_manager install --only-install --verbose
 RUN cfy_manager configure --verbose
