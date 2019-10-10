@@ -425,6 +425,28 @@ class RabbitMQ(BaseComponent):
             sign_key=sign_key,
         )
 
+    def _set_rabbitmq_policy(self, name, expression, policy, priority):
+        policy = json.dumps(policy)
+        logger.debug('Setting policy {0} on queues {1} to {2}'.format(
+            name, expression, policy))
+        # shlex screws this up because we need to pass json and shlex
+        # strips quotes so we explicitly pass it as a list.
+        self._rabbitmqctl(['set_policy',
+                           name,
+                           expression,
+                           policy,
+                           '--apply-to',
+                           'queues',
+                           '--priority',
+                           str(priority)])
+
+    def _set_policies(self):
+        policies = config[RABBITMQ]['policies']
+        logger.info("Setting RabbitMQ Policies...")
+        for policy in policies:
+            self._set_rabbitmq_policy(**policy)
+        logger.info("RabbitMQ policies configured.")
+
     def _validate_rabbitmq_running(self):
         logger.info('Making sure RabbitMQ is live...')
         systemd.verify_alive(RABBITMQ)
@@ -482,9 +504,10 @@ class RabbitMQ(BaseComponent):
         self._validate_rabbitmq_running()
         if config[RABBITMQ]['join_cluster']:
             self.join_cluster(config[RABBITMQ]['join_cluster'])
-        else:
+        elif not self._installing_manager():
             # Users will be synced with the cluster if we're joining one
             self._manage_users()
+            self._set_policies()
         logger.notice('RabbitMQ successfully started')
 
     def stop(self):
