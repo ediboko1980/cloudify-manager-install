@@ -1,5 +1,7 @@
 FROM centos:7
 
+ARG rpm_file=cloudify-manager-install.rpm
+
 # This should save some time for the installations of all these programs
 RUN yum install -y deltarpm
 RUN yum install -y epel-release
@@ -26,8 +28,9 @@ STOPSIGNAL SIGRTMIN+3
 
 RUN systemctl set-default multi-user.target ; systemctl enable crond
 VOLUME [ "/sys/fs/cgroup" ]
-COPY cloudify-manager-install.rpm /tmp/cloudify-manager-install.rpm
+COPY $rpm_file /tmp/cloudify-manager-install.rpm
 RUN yum install -y /tmp/cloudify-manager-install.rpm
+RUN rm /tmp/cloudify-manager-install.rpm
 COPY config.yaml /etc/cloudify/config.yaml
 RUN cfy_manager install --only-install --verbose
 RUN cfy_manager configure --verbose
