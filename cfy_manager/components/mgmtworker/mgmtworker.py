@@ -27,6 +27,7 @@ from ..components_constants import (
     HOSTNAME
 )
 from ..base_component import BaseComponent
+from ..restservice import db
 from ..service_names import MGMTWORKER, MANAGER, PREMIUM
 from ...config import config
 from ...logger import get_logger
@@ -170,6 +171,8 @@ class MgmtWorker(BaseComponent):
     def configure(self):
         logger.notice('Configuring Management Worker...')
         self._configure()
+        with db.ensure_running():
+            self._deploy_admin_token()
         logger.notice('Management Worker successfully configured')
 
     def remove(self):
@@ -185,7 +188,6 @@ class MgmtWorker(BaseComponent):
         if self.is_premium_installed():
             cluster = Cluster(skip_installation=False)
             cluster.configure()
-        self._deploy_admin_token()
         systemd.start(MGMTWORKER)
         self._verify_mgmtworker_alive()
         logger.notice('Management Worker successfully started')

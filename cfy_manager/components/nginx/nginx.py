@@ -250,8 +250,7 @@ class Nginx(BaseComponent):
 
     def _start_and_verify_service(self):
         logger.info('Starting NGINX service...')
-        systemd.enable(NGINX, append_prefix=False)
-        systemd.restart(NGINX, append_prefix=False)
+        systemd.start(NGINX, append_prefix=False)
         systemd.verify_alive(NGINX, append_prefix=False)
 
     def _configure(self):
@@ -266,6 +265,7 @@ class Nginx(BaseComponent):
     def configure(self):
         logger.notice('Configuring NGINX...')
         self._configure()
+        systemd.enable(NGINX, append_prefix=False)
         logger.notice('NGINX successfully configured')
 
     def remove(self):
