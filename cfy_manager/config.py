@@ -79,11 +79,18 @@ class Config(CommentedMap):
     def _own_config_file(self):
         try:
             # Not using common module because of circular import issues
-            subprocess.check_call([
-                'sudo', 'chown', getuser() + '.', USER_CONFIG_PATH
-            ])
-            yield
+            try:
+                subprocess.check_call([
+                    'sudo', 'chown', getuser() + '.', USER_CONFIG_PATH
+                ])
+            except Exception as e:
+                chown = False
+            else:
+                chown = True
+            yield chown
         finally:
+            if not chown:
+                return
             try:
                 pwd.getpwnam('cfyuser')
                 subprocess.check_call([
@@ -115,7 +122,9 @@ class Config(CommentedMap):
     def dump_config(self):
         self.pop(self.TEMP_PATHS, None)
         try:
-            with self._own_config_file():
+            with self._own_config_file() as can_write:
+                if not can_write:
+                    return
                 with open(USER_CONFIG_PATH, 'w') as f:
                     yaml.dump(CommentedMap(self, relax=True), f)
         except (IOError, YAMLError) as e:
