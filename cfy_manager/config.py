@@ -83,7 +83,7 @@ class Config(CommentedMap):
                 subprocess.check_call([
                     'sudo', 'chown', getuser() + '.', USER_CONFIG_PATH
                 ])
-            except Exception as e:
+            except Exception:
                 chown = False
             else:
                 chown = True
