@@ -31,6 +31,8 @@ VOLUME [ "/sys/fs/cgroup" ]
 COPY $rpm_file /tmp/cloudify-manager-install.rpm
 RUN yum install -y /tmp/cloudify-manager-install.rpm && rm /tmp/cloudify-manager-install.rpm
 COPY config.yaml /etc/cloudify/config.yaml
+COPY starter.service /usr/lib/systemd/system/cloudify-starter.service
+COPY starter.sh /opt/cloudify-starter.sh
+RUN chmod +x /opt/cloudify-starter.sh && systemctl enable cloudify-starter
 RUN cfy_manager install --only-install --verbose
-RUN cfy_manager configure --verbose
 CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
