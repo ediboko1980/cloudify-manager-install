@@ -1,0 +1,7 @@
+manager:
+  private_ip: '127.0.0.1'
+  public_ip: '127.0.0.1'
+
+
+services_to_install:
+ - queue_service
