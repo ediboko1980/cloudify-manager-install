@@ -32,12 +32,11 @@ from ..service_names import MGMTWORKER, MANAGER, PREMIUM
 from ...config import config
 from ...logger import get_logger
 from ... import constants as const
-from ...utils import common, sudoers
+from ...utils import common, service, sudoers
 from ...utils.files import (
     deploy,
     get_local_source_path
 )
-from ...utils.systemd import systemd
 from ...utils.install import yum_install, yum_remove, RpmPackageHandler
 from ...exceptions import FileError
 
@@ -109,7 +108,7 @@ class MgmtWorker(BaseComponent):
         script_path = join(const.BASE_RESOURCES_PATH, MGMTWORKER, script_name)
         common.chown('root', 'root', script_path)
         common.chmod('0500', script_path)
-        common.run(['sudo', script_path])
+        common.run([script_path])
 
     def _deploy_hooks_config(self):
         file_name = 'hooks.conf'
@@ -137,17 +136,17 @@ class MgmtWorker(BaseComponent):
                      hooks_config_dst)
 
     def _prepare_snapshot_permissions(self):
-        self._add_snapshot_restore_sudo_commands()
+        # self._add_snapshot_restore_sudo_commands()
         # TODO: See if these are necessary
         common.sudo(['chgrp', const.CLOUDIFY_GROUP, '/opt/manager'])
         common.sudo(['chmod', 'g+rw', '/opt/manager'])
 
     def _verify_mgmtworker_alive(self):
-        systemd.verify_alive(MGMTWORKER)
+        service.verify_alive(MGMTWORKER)
 
     def _configure(self):
         self._deploy_mgmtworker_config()
-        systemd.configure(MGMTWORKER)
+        service.configure(MGMTWORKER)
         self._prepare_snapshot_permissions()
 
     def install(self):
@@ -177,7 +176,7 @@ class MgmtWorker(BaseComponent):
 
     def remove(self):
         logger.notice('Removing Management Worker...')
-        systemd.remove(MGMTWORKER, service_file=False)
+        service.remove(MGMTWORKER, service_file=False)
         yum_remove('cloudify-management-worker')
         common.remove('/opt/mgmtworker')
         common.remove(join(const.BASE_RESOURCES_PATH, MGMTWORKER))
@@ -188,11 +187,11 @@ class MgmtWorker(BaseComponent):
         if self.is_premium_installed():
             cluster = Cluster(skip_installation=False)
             cluster.configure()
-        systemd.start(MGMTWORKER)
+        service.start(MGMTWORKER)
         self._verify_mgmtworker_alive()
         logger.notice('Management Worker successfully started')
 
     def stop(self):
         logger.notice('Stopping Management Worker...')
-        systemd.stop(MGMTWORKER)
+        service.stop(MGMTWORKER)
         logger.notice('Management Worker successfully stopped')

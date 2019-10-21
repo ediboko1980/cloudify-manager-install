@@ -47,9 +47,9 @@ from ...utils import (
     certificates,
     common,
     files,
+    service,
     sudoers,
 )
-from ...utils.systemd import systemd
 from ...utils.network import wait_for_port
 from ...utils.users import create_service_user
 from ...utils.logrotate import set_logrotate, remove_logrotate
@@ -270,7 +270,7 @@ class Stage(BaseComponent):
             common.chmod('640', config_path)
 
     def _verify_stage_alive(self):
-        systemd.verify_alive(STAGE)
+        service.verify_alive(STAGE)
         wait_for_port(8088)
 
     def _add_snapshot_sudo_command(self):
@@ -287,7 +287,7 @@ class Stage(BaseComponent):
         # Used in the service template
         config[STAGE][SERVICE_USER] = STAGE_USER
         config[STAGE][SERVICE_GROUP] = STAGE_GROUP
-        systemd.configure(STAGE,
+        service.configure(STAGE,
                           user=STAGE_USER, group=STAGE_GROUP)
 
     def install(self):
@@ -307,7 +307,7 @@ class Stage(BaseComponent):
         logger.notice('Removing Stage...')
         files.remove_notice(STAGE)
         remove_logrotate(STAGE)
-        systemd.remove(STAGE)
+        service.remove(STAGE)
         files.remove_files([
             HOME_DIR,
             NODEJS_DIR,
@@ -320,11 +320,11 @@ class Stage(BaseComponent):
     def start(self):
         logger.notice('Starting Stage...')
         self._run_db_migrate()
-        systemd.start(STAGE)
+        service.start(STAGE)
         self._verify_stage_alive()
         logger.notice('Stage successfully started')
 
     def stop(self):
         logger.notice('Stopping Stage...')
-        systemd.stop(STAGE)
+        service.stop(STAGE)
         logger.notice('Stage successfully stopped')

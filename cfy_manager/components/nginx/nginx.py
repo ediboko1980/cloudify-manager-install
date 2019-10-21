@@ -31,9 +31,7 @@ from ... import constants
 from ...config import config
 from ...logger import get_logger
 from ...exceptions import ValidationError
-from ...utils import common
-from ...utils import certificates
-from ...utils.systemd import systemd
+from ...utils import common, certificates, service
 from ...utils.install import yum_install, yum_remove
 from ...utils.logrotate import set_logrotate, remove_logrotate
 from ...utils.files import remove_files, deploy, copy_notice, remove_notice
@@ -55,7 +53,8 @@ class Nginx(BaseComponent):
         yum_install(nginx_source_url)
         common.mkdir(LOG_DIR)
         copy_notice(NGINX)
-        self._deploy_unit_override()
+        # TODO
+        # self._deploy_unit_override()
         set_logrotate(NGINX)
 
     def _deploy_unit_override(self):
@@ -250,8 +249,8 @@ class Nginx(BaseComponent):
 
     def _start_and_verify_service(self):
         logger.info('Starting NGINX service...')
-        systemd.start(NGINX, append_prefix=False)
-        systemd.verify_alive(NGINX, append_prefix=False)
+        service.start(NGINX, append_prefix=False)
+        service.verify_alive(NGINX, append_prefix=False)
 
     def _configure(self):
         self._handle_certs()
@@ -265,7 +264,8 @@ class Nginx(BaseComponent):
     def configure(self):
         logger.notice('Configuring NGINX...')
         self._configure()
-        systemd.enable(NGINX, append_prefix=False)
+        service.configure(NGINX)
+        service.enable(NGINX, append_prefix=False)
         logger.notice('NGINX successfully configured')
 
     def remove(self):
@@ -289,5 +289,5 @@ class Nginx(BaseComponent):
 
     def stop(self):
         logger.notice('Stopping NGINX...')
-        systemd.stop(NGINX, append_prefix=False)
+        service.stop(NGINX, append_prefix=False)
         logger.notice('NGINX successfully stopped')

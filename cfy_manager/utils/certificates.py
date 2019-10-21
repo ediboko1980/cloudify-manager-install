@@ -19,13 +19,13 @@ import json
 import socket
 from contextlib import contextmanager
 
+from . import service
 from .common import sudo, remove, chown, copy
 from ..components.components_constants import SSL_INPUTS
 from ..config import config
 from ..constants import SSL_CERTS_TARGET_DIR, CLOUDIFY_USER, CLOUDIFY_GROUP
 from ..exceptions import ProcessExecutionError
 from .files import write_to_file, write_to_tempfile
-from .systemd import systemd
 from ..components.validations import check_certificates
 
 from ..logger import get_logger
@@ -394,8 +394,8 @@ def create_internal_certs(manager_hostname=None,
         hostname,
         filename=metadata
     )
-    if not no_reload and systemd.is_alive('nginx', append_prefix=False):
-        systemd.reload('nginx', append_prefix=False)
+    if not no_reload and service.is_alive('nginx', append_prefix=False):
+        service.restart('nginx', append_prefix=False)
 
 
 @argh.arg('--private-ip', help="The manager's private IP", required=True)

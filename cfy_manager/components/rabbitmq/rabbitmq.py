@@ -38,7 +38,7 @@ from ...exceptions import (
     RabbitNodeListError,
     ValidationError,
 )
-from ...utils.systemd import systemd
+from ...utils import service
 from ...utils.install import yum_install, yum_remove
 from ...utils.network import wait_for_port, is_port_open
 from ...utils.common import sudo, can_lookup_hostname, remove as remove_file
@@ -47,7 +47,6 @@ from ...utils.files import write_to_file, deploy
 
 LOG_DIR = join(constants.BASE_LOG_DIR, RABBITMQ)
 HOME_DIR = join('/etc', RABBITMQ)
-CONFIG_PATH = join(constants.COMPONENTS_DIR, RABBITMQ, CONFIG)
 RABBITMQ_CONFIG_PATH = '/etc/cloudify/rabbitmq/rabbitmq.config'
 SECURE_PORT = 5671
 
@@ -71,7 +70,9 @@ class RabbitMQ(BaseComponent):
 
     def _deploy_configuration(self):
         logger.info('Deploying RabbitMQ config')
-        deploy(join(CONFIG_PATH, 'rabbitmq.config'), RABBITMQ_CONFIG_PATH)
+        config_src = join(constants.COMPONENTS_DIR, RABBITMQ,
+                          CONFIG, 'rabbitmq.config')
+        deploy(config_src, RABBITMQ_CONFIG_PATH)
         common.chown('rabbitmq', 'rabbitmq', RABBITMQ_CONFIG_PATH)
 
     def _init_service(self):
@@ -449,11 +450,11 @@ class RabbitMQ(BaseComponent):
 
     def _validate_rabbitmq_running(self):
         logger.info('Making sure RabbitMQ is live...')
-        systemd.verify_alive(RABBITMQ)
+        service.verify_alive(RABBITMQ)
 
-        result = self._rabbitmqctl(['status'])
-        if result.returncode != 0:
-            raise ValidationError('Rabbitmq failed to start')
+        # result = self._rabbitmqctl(['status'])
+        # if result.returncode != 0:
+        #     raise ValidationError('Rabbitmq failed to start')
 
         if not is_port_open(SECURE_PORT, host='127.0.0.1'):
             raise NetworkError(
@@ -465,8 +466,7 @@ class RabbitMQ(BaseComponent):
         self._possibly_set_nodename()
         self._set_erlang_cookie()
         self._possibly_add_hosts_entries()
-        systemd.configure(RABBITMQ,
-                          user='rabbitmq', group='rabbitmq')
+        service.configure(RABBITMQ, user='rabbitmq', group='rabbitmq')
         if not config[RABBITMQ]['cluster_members']:
             # We must populate the brokers table for an all-in-one manager,
             # or a single external broker
@@ -491,7 +491,7 @@ class RabbitMQ(BaseComponent):
         yum_remove('erlang')
         logger.info('Stopping the Erlang Port Mapper Daemon...')
         sudo(['epmd', '-kill'], ignore_failures=True)
-        systemd.remove(RABBITMQ, service_file=False)
+        service.remove(RABBITMQ, service_file=False)
         yum_remove('socat')
         logger.info('Removing rabbit data...')
         sudo(['rm', '-rf', '/var/lib/rabbitmq'])
@@ -499,7 +499,7 @@ class RabbitMQ(BaseComponent):
 
     def start(self):
         logger.notice('Starting RabbitMQ...')
-        systemd.start(RABBITMQ)
+        service.start(RABBITMQ)
         wait_for_port(SECURE_PORT)
         self._validate_rabbitmq_running()
         if config[RABBITMQ]['join_cluster']:
@@ -512,5 +512,5 @@ class RabbitMQ(BaseComponent):
 
     def stop(self):
         logger.notice('Stopping RabbitMQ...')
-        systemd.stop(RABBITMQ)
+        service.stop(RABBITMQ)
         logger.notice('RabbitMQ successfully stopped')

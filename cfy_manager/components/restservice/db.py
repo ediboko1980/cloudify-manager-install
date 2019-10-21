@@ -44,9 +44,8 @@ from ... import constants
 from ...config import config
 from ...logger import get_logger
 
-from ...utils import common
+from ...utils import common, service
 from ...utils.files import temp_copy, write_to_tempfile
-from ...utils.systemd import systemd
 
 logger = get_logger('DB')
 
@@ -75,7 +74,7 @@ def _execute_db_script(script_name):
 
     script_path = join(SCRIPTS_PATH, script_name)
     tmp_script_path = temp_copy(script_path)
-    common.chmod('o+rx', tmp_script_path)
+    common.chmod('uo+rx', tmp_script_path)
     username = pg_config['cloudify_username'].split('@')[0]
     db_script_command = \
         '{cmd} {db} {user} {password}'.format(
@@ -84,12 +83,6 @@ def _execute_db_script(script_name):
             user=username,
             password=pg_config['cloudify_password']
         )
-
-    if DATABASE_SERVICE in config[SERVICES_TO_INSTALL]:
-        # In case the default user is postgres and we're in AIO installation,
-        # "peer" authentication is used
-        if config[POSTGRESQL_CLIENT]['server_username'] == 'postgres':
-            db_script_command = '-u postgres ' + db_script_command
 
     db_env = _generate_db_env(database=pg_config['server_db_name'])
 
@@ -244,16 +237,9 @@ def create_amqp_resources(configs=None):
 
 
 def _run_psql_command(command, db_key):
-    base_command = []
-    if DATABASE_SERVICE in config[SERVICES_TO_INSTALL]:
-        # In case the default user is postgres and we're in AIO installation,
-        # "peer" authentication is used
-        if config[POSTGRESQL_CLIENT]['server_username'] == 'postgres':
-            base_command.extend(['-u', 'postgres'])
-
     # Run psql with just the results output without headers (-t),
     # and no psqlrc (-X)
-    base_command.extend(['psql', '-t', '-X'])
+    base_command = ['psql', '-t', '-X']
 
     command = base_command + command
 
@@ -325,19 +311,9 @@ def _log_results(result):
 
 @contextmanager
 def ensure_running():
-    pg_ctl = '/usr/pgsql-9.5/bin/pg_ctl'
-    should_start = DATABASE_SERVICE in config[SERVICES_TO_INSTALL] and \
-        not systemd.is_alive('postgresql-9.5')
-    if should_start:
-        common.sudo([
-            '-upostgres', '/bin/bash', '-c',
-            '{0} start -D /var/lib/pgsql/9.5/data'.format(pg_ctl)
-        ], wait=False)
+    service.start('postgresql-server')
     time.sleep(3)
     try:
         yield
     finally:
-        if should_start:
-            common.sudo([
-                '-upostgres', pg_ctl, 'stop', '-D', '/var/lib/pgsql/9.5/data'
-            ])
+        service.start('postgresql-server')

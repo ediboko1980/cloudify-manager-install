@@ -41,8 +41,8 @@ from ....components.service_names import (
     RESTSERVICE,
     MGMTWORKER
 )
+from ....utils import service
 from ....utils.common import sudo
-from ....utils.systemd import systemd
 from ....utils.install import yum_install
 from ....utils.files import write_to_tempfile
 from ....utils.network import get_auth_headers, wait_for_port
@@ -61,8 +61,8 @@ class Cluster(BaseComponent):
 
     def _verify_local_rest_service_alive(self, verify_rest_call=False):
         # Restarting rest-service to read the new replicated rest-security.conf
-        systemd.restart(RESTSERVICE)
-        systemd.verify_alive(RESTSERVICE)
+        service.restart(RESTSERVICE)
+        service.verify_alive(RESTSERVICE)
         rest_port = config[RESTSERVICE]['port']
 
         wait_for_port(rest_port)

@@ -34,11 +34,11 @@ SERVICE_COMPONENTS = {
         "nginx",
         "python",
         "amqp_postgres",
-        "stage",
-        "composer",
+        # "stage",
+        # "composer",
         "mgmtworker",
         "cli",
-        "usage_collector",
+        # "usage_collector",
         "patch",
         "sanity"
     ]

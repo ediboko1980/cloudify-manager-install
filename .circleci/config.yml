@@ -118,11 +118,7 @@ jobs:
               cp /tmp/workspace/x86_64/*.rpm cloudify-manager-install.rpm
               docker build -t cloudify-manager .
             popd
-      - run:
-          name: run container
-          command: |
-            docker run --name cloudify-manager -d -v /tmp/workspace:/tmp/workspace:ro -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN cloudify-manager
-            docker exec cloudify-manager cfy_manager start
+
 
   install_cluster:
     machine: true
@@ -258,7 +254,6 @@ workflows:
   version: 2
   build:
     jobs: &build_jobs
-      - flake8
       - fetch_rpms
       - build_executable
       - build_rpm:
@@ -266,12 +261,6 @@ workflows:
             - fetch_rpms
             - build_executable
       - build_image:
-          requires:
-            - build_rpm
-      - install_manager:
-          requires:
-            - build_rpm
-      - install_cluster:
           requires:
             - build_rpm
 

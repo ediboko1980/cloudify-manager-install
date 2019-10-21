@@ -33,8 +33,7 @@ from ...config import config
 from ...logger import get_logger
 from ...exceptions import FileError
 from ...constants import BASE_LOG_DIR, CLOUDIFY_USER, CLOUDIFY_GROUP
-from ...utils import common, files, sudoers, certificates
-from ...utils.systemd import systemd
+from ...utils import common, files, sudoers, certificates, service
 from ...utils.network import wait_for_port
 from ...utils.logrotate import set_logrotate, remove_logrotate
 from ...utils.users import create_service_user
@@ -90,7 +89,7 @@ class Composer(BaseComponent):
         self._add_snapshot_sudo_command()
 
     def _verify_composer_alive(self):
-        systemd.verify_alive(COMPOSER)
+        service.verify_alive(COMPOSER)
         wait_for_port(COMPOSER_PORT)
 
     def _run_db_migrate(self):
@@ -228,7 +227,7 @@ class Composer(BaseComponent):
         self._update_composer_config()
         config[COMPOSER][SERVICE_USER] = COMPOSER_USER
         config[COMPOSER][SERVICE_GROUP] = COMPOSER_GROUP
-        systemd.configure(COMPOSER,
+        service.configure(COMPOSER,
                           user=COMPOSER_USER, group=COMPOSER_GROUP)
         logger.notice('Cloudify Composer successfully configured')
 
@@ -236,18 +235,18 @@ class Composer(BaseComponent):
         logger.notice('Removing Cloudify Composer...')
         files.remove_notice(COMPOSER)
         remove_logrotate(COMPOSER)
-        systemd.remove(COMPOSER)
+        service.remove(COMPOSER)
         files.remove_files([HOME_DIR, NODEJS_DIR, LOG_DIR])
         logger.notice('Cloudify Composer successfully removed')
 
     def start(self):
         logger.notice('Starting Cloudify Composer...')
         self._run_db_migrate()
-        systemd.start(COMPOSER)
+        service.start(COMPOSER)
         self._verify_composer_alive()
         logger.notice('Cloudify Composer successfully started')
 
     def stop(self):
         logger.notice('Stopping Cloudify Composer...')
-        systemd.stop(COMPOSER)
+        service.stop(COMPOSER)
         logger.notice('Cloudify Composer successfully stopped')

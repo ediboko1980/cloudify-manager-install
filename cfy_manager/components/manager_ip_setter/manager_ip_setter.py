@@ -20,8 +20,7 @@ from ..base_component import BaseComponent
 from ..service_names import MANAGER, MANAGER_IP_SETTER
 from ...config import config
 from ...logger import get_logger
-from ...utils import common
-from ...utils.systemd import systemd
+from ...utils import common, service
 from ...utils.install import yum_install, yum_remove
 
 
@@ -41,7 +40,7 @@ class ManagerIpSetter(BaseComponent):
 
     def _configure(self):
         if config[MANAGER]['set_manager_ip_on_boot']:
-            systemd.configure(MANAGER_IP_SETTER)
+            service.configure(MANAGER_IP_SETTER)
         else:
             logger.info('Set manager ip on boot is disabled.')
 
@@ -57,7 +56,7 @@ class ManagerIpSetter(BaseComponent):
 
     def remove(self):
         logger.notice('Removing Manager IP Setter...')
-        systemd.remove(MANAGER_IP_SETTER, service_file=False)
+        service.remove(MANAGER_IP_SETTER, service_file=False)
         yum_remove('cloudify-manager-ip-setter')
         common.remove('/opt/cloudify/manager-ip-setter')
         logger.notice('Manager IP Setter successfully removed')

@@ -11,7 +11,14 @@ manager:
 sanity:
   skip_sanity: true
 
+postgresql_client:
+  server_username: cfyuser
+
 services_to_install:
 - database_service
 - queue_service
 - manager_service
+
+service_management: supervisord
+skip_sudo: true
+save_config: false

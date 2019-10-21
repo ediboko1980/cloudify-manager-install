@@ -61,6 +61,7 @@ class Cli(BaseComponent):
 
         manager = config[MANAGER]['cli_local_profile_host_name']
         use_cmd = ['cfy', 'profiles', 'use', manager,
+                   '--rest-port', '8090',
                    '--skip-credentials-validation']
 
         ssl_enabled = \
@@ -71,6 +72,7 @@ class Cli(BaseComponent):
             'cfy', 'profiles', 'set', '-u', username,
             '-p', password, '-t', 'default_tenant',
             '-c', cert_path, '--ssl', ssl_enabled,
+            '--skip-credentials-validation'
         ]
 
         current_user = getuser()

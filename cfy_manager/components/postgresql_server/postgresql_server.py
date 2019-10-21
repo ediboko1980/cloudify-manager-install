@@ -51,14 +51,13 @@ from ..service_names import (
 from ... import constants
 from ...config import config
 from ...logger import get_logger
-from ...utils import common, files
-from ...utils.systemd import systemd
+from ...utils import common, files, service
 from ...utils.install import yum_install, yum_remove
 
 POSTGRESQL_SCRIPTS_PATH = join(constants.COMPONENTS_DIR, POSTGRESQL_SERVER,
                                SCRIPTS)
 
-SYSTEMD_SERVICE_NAME = 'postgresql-9.5'
+SYSTEMD_SERVICE_NAME = 'postgresql-server'
 POSTGRES_USER = POSTGRES_GROUP = 'postgres'
 
 # Etcd used only in clusters
@@ -140,7 +139,7 @@ class PostgresqlServer(BaseComponent):
         logger.debug('Initializing PostgreSQL Server DATA folder...')
         pg_ctl = join(PGSQL_USR_DIR, 'bin', 'pg_ctl')
         try:
-            common.sudo(['-upostgres', pg_ctl, 'initdb'], env={
+            common.run([pg_ctl, 'initdb'], env={
                 'PGDATA': '/var/lib/pgsql/9.5/data'
             })
         except Exception:
@@ -148,7 +147,7 @@ class PostgresqlServer(BaseComponent):
             pass
 
         logger.debug('Installing PostgreSQL Server service...')
-        systemd.enable(SYSTEMD_SERVICE_NAME, append_prefix=False)
+        service.enable(SYSTEMD_SERVICE_NAME, append_prefix=False)
 
         logger.debug('Setting PostgreSQL Server logs path...')
         ps_95_logs_path = join(PGSQL_LIB_DIR, '9.5', 'data', 'pg_log')
@@ -276,6 +275,7 @@ class PostgresqlServer(BaseComponent):
         # On the first node, etcd start via systemd will fail because of the
         # other nodes not being up, so we use this approach instead
         logger.info('Starting etcd')
+        # TODO
         common.sudo(['systemctl', 'start', 'etcd', '--no-block'])
         while not self._etcd_is_running():
             logger.info('Waiting for etcd to start...')
@@ -380,8 +380,8 @@ class PostgresqlServer(BaseComponent):
 
     def _configure_cluster(self):
         logger.info('Disabling postgres (will be managed by patroni)')
-        systemd.stop(SYSTEMD_SERVICE_NAME, append_prefix=False)
-        systemd.disable(SYSTEMD_SERVICE_NAME, append_prefix=False)
+        service.stop(SYSTEMD_SERVICE_NAME, append_prefix=False)
+        service.disable(SYSTEMD_SERVICE_NAME, append_prefix=False)
 
         logger.info('Deploying cluster certificates')
         # We need access to the certs, which by default we don't have
@@ -428,7 +428,7 @@ class PostgresqlServer(BaseComponent):
         common.sudo(['chmod', '700', '/var/lib/patroni/data'])
 
         logger.info('Configuring etcd')
-        systemd.enable('etcd', append_prefix=False)
+        service.enable('etcd', append_prefix=False)
         self._start_etcd()
 
         try:
@@ -530,8 +530,8 @@ class PostgresqlServer(BaseComponent):
             '/usr/lib/systemd/system/patroni.service',
             render=False,
         )
-        systemd.enable('patroni', append_prefix=False)
-        systemd.start('patroni', append_prefix=False)
+        service.enable('patroni', append_prefix=False)
+        service.start('patroni', append_prefix=False)
 
     def _get_etcd_members(self):
         """Get a dict mapping etcd member IPs to their IDs."""
@@ -1130,12 +1130,12 @@ class PostgresqlServer(BaseComponent):
                 logger.info(
                     'DB cluster component RPMs not available, skipping.'
                 )
+        files.copy_notice(POSTGRESQL_SERVER)
         logger.notice('PostgreSQL Server successfully installed')
 
     def configure(self):
         logger.notice('Configuring PostgreSQL Server...')
-        files.copy_notice(POSTGRESQL_SERVER)
-
+        service.configure(SYSTEMD_SERVICE_NAME)
         if config[POSTGRESQL_SERVER]['cluster']['nodes']:
             self._configure_cluster()
         else:
@@ -1158,11 +1158,11 @@ class PostgresqlServer(BaseComponent):
                 '/etc/patroni.conf',
                 '/etc/etcd',
             ])
-            systemd.remove('patroni', append_prefix=False)
+            service.remove('patroni', append_prefix=False)
             logger.notice('Cluster components removed')
         logger.notice('Removing PostgreSQL...')
         files.remove_notice(POSTGRESQL_SERVER)
-        systemd.remove(SYSTEMD_SERVICE_NAME)
+        service.remove(SYSTEMD_SERVICE_NAME)
         files.remove_files([PGSQL_LIB_DIR, PGSQL_USR_DIR, LOG_DIR])
         for pg_bin in PG_BINS:
             files.remove(os.path.join('/usr/sbin', pg_bin))
@@ -1174,19 +1174,19 @@ class PostgresqlServer(BaseComponent):
         logger.notice('Starting PostgreSQL Server...')
         if config[POSTGRESQL_SERVER]['cluster']['nodes']:
             self._start_etcd()
-            systemd.start('patroni', append_prefix=False)
-            systemd.verify_alive('patroni', append_prefix=False)
+            service.start('patroni', append_prefix=False)
+            service.verify_alive('patroni', append_prefix=False)
         else:
-            systemd.start(SYSTEMD_SERVICE_NAME, append_prefix=False)
-            systemd.verify_alive(SYSTEMD_SERVICE_NAME, append_prefix=False)
+            service.start(SYSTEMD_SERVICE_NAME, append_prefix=False)
+            service.verify_alive(SYSTEMD_SERVICE_NAME, append_prefix=False)
         logger.notice('PostgreSQL Server successfully started')
 
     def stop(self):
         logger.notice('Stopping PostgreSQL Server...')
-        systemd.stop(SYSTEMD_SERVICE_NAME, append_prefix=False)
+        service.stop(SYSTEMD_SERVICE_NAME, append_prefix=False)
         if config[POSTGRESQL_SERVER]['cluster']['nodes']:
-            systemd.stop('etcd', append_prefix=False)
-            systemd.stop('patroni', append_prefix=False)
+            service.stop('etcd', append_prefix=False)
+            service.stop('patroni', append_prefix=False)
         logger.notice('PostgreSQL Server successfully stopped')
 
     def validate_dependencies(self):
