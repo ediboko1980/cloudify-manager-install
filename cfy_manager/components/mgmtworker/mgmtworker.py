@@ -15,7 +15,7 @@
 
 from os.path import join
 
-from .cluster.cluster import Cluster
+# from .cluster.cluster import Cluster
 
 from ..components_constants import (
     SOURCES,
@@ -163,8 +163,9 @@ class MgmtWorker(BaseComponent):
             logger.notice('premium will not be installed.')
         else:
             logger.notice('Installing Cloudify Premium...')
-            cluster = Cluster(skip_installation=False)
-            cluster.install()
+            # TODO
+            # cluster = Cluster(skip_installation=False)
+            # cluster.install()
         logger.notice('Management Worker successfully installed')
 
     def configure(self):
@@ -184,9 +185,10 @@ class MgmtWorker(BaseComponent):
 
     def start(self):
         logger.notice('Starting Management Worker...')
-        if self.is_premium_installed():
-            cluster = Cluster(skip_installation=False)
-            cluster.configure()
+        # TODO
+        # if self.is_premium_installed():
+        #    cluster = Cluster(skip_installation=False)
+        #    cluster.configure()
         service.start(MGMTWORKER)
         self._verify_mgmtworker_alive()
         logger.notice('Management Worker successfully started')

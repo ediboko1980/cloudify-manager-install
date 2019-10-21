@@ -117,6 +117,20 @@ jobs:
             pushd packaging/new_docker
               cp /tmp/workspace/x86_64/*.rpm cloudify-manager-install.rpm
               docker build -t cloudify-manager .
+              docker build -t cloudify-manager-queue -f Dockerfile.queue .
+            popd
+      - run:
+          name: run containers
+          command: |
+            set -eux
+            pushd .circleci/new_docker
+              docker run --name postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=postgres -e POSTGRES_PASSWORD=postgres -d postgres
+              docker run --name cloudify-manager-queue -d -v $(pwd)/config_queue.yaml:/etc/cloudify/config.yaml cloudify-manager-queue
+              sleep 10
+              docker cp cloudify-manager-queue:/etc/cloudify/ssl/rabbitmq-cert.pem rabbitmq-cert.pem
+              docker run --name cloudify-manager -v $(pwd)/config.yaml:/tmp/config.yaml -d -v $(pwd)/rabbitmq-cert.pem:/tmp/rabbitmq-cert.pem cloudify-manager
+              sleep 30
+              docker exec -it cloudify-manager tail /var/log/cloudify/manager/cfy_manager.log
             popd
 
 

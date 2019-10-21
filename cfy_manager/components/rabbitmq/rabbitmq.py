@@ -499,6 +499,7 @@ class RabbitMQ(BaseComponent):
 
     def start(self):
         logger.notice('Starting RabbitMQ...')
+        self._possibly_set_nodename()
         service.start(RABBITMQ)
         wait_for_port(SECURE_PORT)
         self._validate_rabbitmq_running()

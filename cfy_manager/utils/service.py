@@ -147,7 +147,7 @@ def _get_full_service_name(service_name, append_prefix):
 class Supervisord(object):
     def supervisorctl(self, action, service='', ignore_failure=False):
         cmd = [
-            'supervisorctl', '-c', '/etc/supervisor/supervisord.conf', action
+            'supervisorctl', '-c', '/etc/supervisord.conf', action
         ]
         if service:
             cmd += [service]
@@ -184,7 +184,7 @@ class Supervisord(object):
 
         """
         sid = _get_full_service_name(service_name, append_prefix=True)
-        dst = '/etc/supervisor/conf.d/{0}.cloudify.conf'.format(service_name)
+        dst = '/etc/supervisord.d/{0}.cloudify.conf'.format(service_name)
 
         service_dir_name = service_name.replace('-', '_')
         srv_src = join(COMPONENTS_DIR, service_dir_name, 'supervisord.conf')

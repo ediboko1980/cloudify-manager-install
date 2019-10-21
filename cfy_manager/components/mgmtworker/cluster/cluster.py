@@ -132,7 +132,7 @@ class Cluster(BaseComponent):
                 _is_installed(DATABASE_SERVICE) and not\
                 _is_installed(QUEUE_SERVICE):
             # this flag is set inside of restservice._configure_db
-            join = config[CLUSTER_JOIN]
+            join = config.get(CLUSTER_JOIN)
             if join:
                 logger.notice(
                     'Adding manager "{0}" to the cluster, this may take a '
