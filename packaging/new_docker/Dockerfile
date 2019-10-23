@@ -37,6 +37,9 @@ RUN chown cfyuser: /opt/cloudify
 RUN mkdir /run/cloudify-restservice && chown cfyuser: /run/cloudify-restservice
 RUN chown cfyuser: /var/cache/nginx
 RUN chown cfyuser: -R /var/log/nginx
+RUN chown cfyuser: -R /opt/nodejs
+RUN chown cfyuser: -R /opt/cloudify-stage
+RUN chown cfyuser: -R /opt/cloudify-composer
 RUN chmod a+wx /var/run
 RUN rm /etc/cloudify/config.yaml
 USER cfyuser

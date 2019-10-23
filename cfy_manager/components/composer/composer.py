@@ -85,7 +85,7 @@ class Composer(BaseComponent):
 
         files.copy_notice(COMPOSER)
         set_logrotate(COMPOSER)
-        self._create_user_and_set_permissions()
+        # self._create_user_and_set_permissions()
         self._add_snapshot_sudo_command()
 
     def _verify_composer_alive(self):
@@ -93,13 +93,13 @@ class Composer(BaseComponent):
         wait_for_port(COMPOSER_PORT)
 
     def _run_db_migrate(self):
-        if config[CLUSTER_JOIN]:
+        if config.get(CLUSTER_JOIN):
             logger.debug('Joining cluster - not creating the composer db')
             return
         npm_path = join(NODEJS_DIR, 'bin', 'npm')
         common.run(
             [
-                'sudo', '-u', COMPOSER_USER, 'bash', '-c',
+                'bash', '-c',
                 'cd {path}; {npm} run db-migrate'.format(
                     path=HOME_DIR,
                     npm=npm_path,

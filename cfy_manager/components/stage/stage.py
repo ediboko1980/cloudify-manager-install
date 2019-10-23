@@ -117,7 +117,7 @@ class Stage(BaseComponent):
 
         files.copy_notice(STAGE)
         set_logrotate(STAGE)
-        self._create_user_and_set_permissions()
+        # self._create_user_and_set_permissions()
         self._install_nodejs()
         self._deploy_scripts()
 
@@ -159,14 +159,14 @@ class Stage(BaseComponent):
         )
 
     def _run_db_migrate(self):
-        if config[CLUSTER_JOIN]:
-            logger.debug('Joining cluster - not creating the stage db')
-            return
+        # if config[CLUSTER_JOIN]:
+        #     logger.debug('Joining cluster - not creating the stage db')
+        #     return
         backend_dir = join(HOME_DIR, 'backend')
         npm_path = join(NODEJS_DIR, 'bin', 'npm')
         common.run(
             [
-                'sudo', '-u', STAGE_USER, 'bash', '-c',
+                'bash', '-c',
                 'cd {path}; {npm} run db-migrate'.format(
                     path=backend_dir,
                     npm=npm_path,
