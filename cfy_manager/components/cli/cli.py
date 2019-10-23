@@ -64,15 +64,11 @@ class Cli(BaseComponent):
                    '--rest-port', '8090',
                    '--skip-credentials-validation']
 
-        ssl_enabled = \
-            'on' if config[MANAGER][SECURITY]['ssl_enabled'] else 'off'
-
         cert_path = self._deploy_external_cert()
         set_cmd = [
             'cfy', 'profiles', 'set', '-u', username,
             '-p', password, '-t', 'default_tenant',
-            '-c', cert_path, '--ssl', ssl_enabled,
-            '--skip-credentials-validation'
+            '-c', cert_path, '--skip-credentials-validation'
         ]
 
         current_user = getuser()
