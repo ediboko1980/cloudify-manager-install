@@ -51,7 +51,8 @@ if __name__ == '__main__':
     with open(args.args_dict_config_path, 'r') as f:
         args_dict = json.load(f)
 
-    config.instance.load_configuration()
+    config.instance.load_from_file('/opt/manager/cloudify-rest.conf')
+    config.instance.load_from_db()
     setup_flask_app(manager_ip=config.instance.postgresql_host)
 
     run_syncthing_configuration(args_dict['command'],

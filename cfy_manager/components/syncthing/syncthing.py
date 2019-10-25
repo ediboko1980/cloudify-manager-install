@@ -84,16 +84,7 @@ class Syncthing(BaseComponent):
                 logger.error(line)
 
     def _create_process_env(self):
-        env = {}
-        for value, envvar in [
-            (REST_CONFIG_PATH, 'MANAGER_REST_CONFIG_PATH'),
-            (REST_SECURITY_CONFIG_PATH, 'MANAGER_REST_SECURITY_CONFIG_PATH'),
-            (REST_AUTHORIZATION_CONFIG_PATH,
-             'MANAGER_REST_AUTHORIZATION_CONFIG_PATH'),
-        ]:
-            if value is not None:
-                env[envvar] = value
-        return env
+        return {'MANAGER_REST_CONFIG_PATH': REST_CONFIG_PATH}
 
     def _run_syncthing_configuration_script(self, command, bootstrap_cluster):
         args_dict = {
