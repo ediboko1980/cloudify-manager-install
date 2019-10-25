@@ -40,6 +40,7 @@ RUN chown cfyuser: -R /var/log/nginx
 RUN chown cfyuser: -R /opt/nodejs
 RUN chown cfyuser: -R /opt/cloudify-stage
 RUN chown cfyuser: -R /opt/cloudify-composer
+RUN chown cfyuser: -R /opt/syncthing
 RUN chmod a+wx /var/run
 RUN rm /etc/cloudify/config.yaml
 USER cfyuser

@@ -15,7 +15,7 @@
 
 from os.path import join
 
-# from .cluster.cluster import Cluster
+from ..syncthing.syncthing import Syncthing
 
 from ..components_constants import (
     SOURCES,
@@ -163,9 +163,8 @@ class MgmtWorker(BaseComponent):
             logger.notice('premium will not be installed.')
         else:
             logger.notice('Installing Cloudify Premium...')
-            # TODO
-            # cluster = Cluster(skip_installation=False)
-            # cluster.install()
+            cluster = Syncthing(skip_installation=False)
+            cluster.install()
         logger.notice('Management Worker successfully installed')
 
     def configure(self):
@@ -173,6 +172,9 @@ class MgmtWorker(BaseComponent):
         self._configure()
         with db.ensure_running():
             self._deploy_admin_token()
+        if self.is_premium_installed():
+            cluster = Syncthing(skip_installation=False)
+            cluster.configure()
         logger.notice('Management Worker successfully configured')
 
     def remove(self):
@@ -185,10 +187,9 @@ class MgmtWorker(BaseComponent):
 
     def start(self):
         logger.notice('Starting Management Worker...')
-        # TODO
-        # if self.is_premium_installed():
-        #    cluster = Cluster(skip_installation=False)
-        #    cluster.configure()
+        if self.is_premium_installed():
+            cluster = Syncthing(skip_installation=False)
+            cluster.start()
         service.start(MGMTWORKER)
         self._verify_mgmtworker_alive()
         logger.notice('Management Worker successfully started')
