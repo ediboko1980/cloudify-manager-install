@@ -16,6 +16,7 @@
 from contextlib import contextmanager
 from os.path import join
 import time
+import uuid
 
 from .manager_config import make_manager_config
 from ..components_constants import (
@@ -149,6 +150,7 @@ def _create_args_dict():
                 'password': config[RABBITMQ]['password'],
                 'params': None,
                 'networks': broker,
+                'node_id': str(uuid.uuid4())
             }
             for name, broker in config[RABBITMQ]['cluster_members'].items()
         ],
@@ -220,6 +222,7 @@ def insert_manager(configs):
             'hostname': config[MANAGER][HOSTNAME],
             'private_ip': config['manager']['private_ip'],
             'networks': config['networks'],
+            'node_id': str(uuid.uuid4())
         }
     }
     try:

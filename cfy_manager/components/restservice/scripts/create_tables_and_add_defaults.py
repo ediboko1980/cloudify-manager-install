@@ -19,10 +19,10 @@ import atexit
 import base64
 import json
 import hashlib
-import logging
 import os
-import subprocess
+import logging
 import tempfile
+import subprocess
 from datetime import datetime
 
 from flask_migrate import upgrade
@@ -206,7 +206,8 @@ def _insert_manager(config):
         version=version_data['version'],
         distribution=version_data['distribution'],
         distro_release=version_data['distro_release'],
-        _ca_cert_id=ca
+        _ca_cert_id=ca,
+        node_id=config['node_id']
     )
     sm.put(inst)
 
