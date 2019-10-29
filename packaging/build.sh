@@ -4,7 +4,7 @@ cp /tmp/cloudify-manager-install/premium.pem ~/.ssh/id_rsa
 chmod 0400 ~/.ssh/id_rsa
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 rm ~/rpm -fr
-cp /tmp/cloudify-manager-install ~/rpm
+cp /tmp/cloudify-manager-install ~/rpm -fr
 pushd ~/rpm/rpms
     ~/rpm/packaging/fetch_requirements --edition premium
 popd
