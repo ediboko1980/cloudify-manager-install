@@ -25,16 +25,9 @@ RUN mkdir -p /var/log/supervisor
 RUN mkdir /run/cloudify-restservice
 RUN mkdir /opt/cloudify-stage/dist/userData
 RUN chown cfyuser: -R /var/log/cloudify \
-    /var/lib/pgsql \
-    /var/lib/rabbitmq \
-    /etc/cloudify/rabbitmq \
-    /etc/rabbitmq \
-    /var/run/postgresql \
-    /var/log/rabbitmq \
     /etc/nginx \
     /etc/cloudify \
     /var/log/nginx \
-    /opt/nodejs \
     /opt/cloudify-stage/resources \
     /opt/cloudify-stage/conf \
     /opt/cloudify-stage/dist/userData \
