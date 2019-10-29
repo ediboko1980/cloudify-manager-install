@@ -1,0 +1,3 @@
+CLOUDIFY_PREMIUM_CIRCLE_ARTIFACTS_TOKEN= ../.circleci/fetch_rpms
+
+docker run -v $(pwd):/tmp/cloudify-manager-install:rw -v $(pwd)/pex:/tmp/output:rw python:2 bash -c 'pip install pex==1.3.2 && pex /tmp/cloudify-manager-install -o /tmp/output/cfy_manager -m cfy_manager.main --disable-cache'
