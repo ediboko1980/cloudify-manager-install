@@ -23,6 +23,7 @@ RUN chmod +x /opt/cloudify-starter.sh
 RUN cfy_manager install --only-install --verbose
 RUN mkdir -p /var/log/supervisor
 RUN mkdir /run/cloudify-restservice
+RUN mkdir /opt/cloudify-stage/dist/userData
 RUN chown cfyuser: -R /var/log/cloudify \
     /var/lib/pgsql \
     /var/lib/rabbitmq \
@@ -34,7 +35,9 @@ RUN chown cfyuser: -R /var/log/cloudify \
     /etc/cloudify \
     /var/log/nginx \
     /opt/nodejs \
-    /opt/cloudify-stage \
+    /opt/cloudify-stage/resources \
+    /opt/cloudify-stage/conf \
+    /opt/cloudify-stage/dist/userData \
     /opt/cloudify-composer \
     /opt/syncthing \
     /opt/manager \
