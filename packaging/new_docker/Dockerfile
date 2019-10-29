@@ -21,28 +21,33 @@ COPY config.yaml /etc/cloudify/config.yaml
 COPY starter.sh /opt/cloudify-starter.sh
 RUN chmod +x /opt/cloudify-starter.sh
 RUN cfy_manager install --only-install --verbose
-RUN chown cfyuser: -R /var/log/cloudify
-RUN mkdir -p /var/log/supervisor && chown cfyuser: /var/log/supervisor
-RUN chown cfyuser: /etc/supervisord.d
-RUN chown cfyuser: -R /var/lib/pgsql
-RUN chown cfyuser: -R /var/lib/rabbitmq
-RUN chown cfyuser: -R /etc/cloudify/rabbitmq
-RUN chown cfyuser: -R /etc/rabbitmq
-RUN chown cfyuser: -R /var/run/postgresql
-RUN chown cfyuser: -R /var/log/rabbitmq
-RUN chown cfyuser: -R /etc/nginx
-RUN chown cfyuser: -R /etc/cloudify
-RUN chown cfyuser: /opt/manager
-RUN chown cfyuser: /opt/cloudify
-RUN mkdir /run/cloudify-restservice && chown cfyuser: /run/cloudify-restservice
-RUN chown cfyuser: /var/cache/nginx
-RUN chown cfyuser: -R /var/log/nginx
-RUN chown cfyuser: -R /opt/nodejs
-RUN chown cfyuser: -R /opt/cloudify-stage
-RUN chown cfyuser: -R /opt/cloudify-composer
-RUN chown cfyuser: -R /opt/syncthing
+RUN mkdir -p /var/log/supervisor
+RUN mkdir /run/cloudify-restservice
+RUN chown cfyuser: -R /var/log/cloudify \
+    /var/lib/pgsql \
+    /var/lib/rabbitmq \
+    /etc/cloudify/rabbitmq \
+    /etc/rabbitmq \
+    /var/run/postgresql \
+    /var/log/rabbitmq \
+    /etc/nginx \
+    /etc/cloudify \
+    /var/log/nginx \
+    /opt/nodejs \
+    /opt/cloudify-stage \
+    /opt/cloudify-composer \
+    /opt/syncthing \
+    /opt/manager \
+    /opt/mgmtworker
+RUN chown cfyuser: /etc/supervisord.d \
+    /opt/manager \
+    /opt/cloudify \
+    /var/cache/nginx \
+    /var/log/supervisor \
+    /run/cloudify-restservice
 RUN chmod a+wx /var/run
 RUN rm /etc/cloudify/config.yaml
+
 USER cfyuser
 COPY supervisord.conf /etc/supervisord.conf
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf"]
