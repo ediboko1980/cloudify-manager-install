@@ -23,14 +23,11 @@ RUN chmod +x /opt/cloudify-starter.sh
 RUN cfy_manager install --only-install --verbose
 RUN mkdir -p /var/log/supervisor
 RUN mkdir /run/cloudify-restservice
-RUN mkdir /opt/cloudify-stage/dist/userData
 RUN chown cfyuser: -R /var/log/cloudify \
     /etc/nginx \
     /etc/cloudify \
     /var/log/nginx \
-    /opt/cloudify-stage/resources \
-    /opt/cloudify-stage/conf \
-    /opt/cloudify-stage/dist/userData \
+    /opt/cloudify-stage \
     /opt/cloudify-composer \
     /opt/syncthing \
     /opt/manager \
