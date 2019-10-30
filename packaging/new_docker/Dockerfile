@@ -1,7 +1,7 @@
 FROM centos:7
 
 ARG rpm_file=cloudify-manager-install.rpm
-RUN useradd -ms /bin/bash --home-dir /etc/cloudify cfyuser
+RUN useradd -ms /bin/bash --home-dir /etc/cloudify -u 1500 cfyuser
 
 # This should save some time for the installations of all these programs
 RUN yum install -y deltarpm

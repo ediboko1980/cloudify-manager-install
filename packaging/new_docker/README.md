@@ -1,19 +1,36 @@
-docker ps -q | xargs docker rm -f
+# Manager Docker Image
 
-docker run --name postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=postgres -e POSTGRES_PASSWORD=postgres -d postgres
-docker run --name cloudify-manager-queue -d -v $(pwd)/config_queue.yaml:/etc/cloudify/config.yaml cloudify-manager-queue
+## Building the docker image
 
-docker exec -it cloudify-manager-queue tail -f  /var/log/cloudify/manager/cfy_manager.log
-docker cp cloudify-manager-queue:/etc/cloudify/ssl/rabbitmq-cert.pem rabbitmq-cert.pem
+Navigate to packaging/new_docker, and do `docker build -t cloudify-manager --build-arg rpm_file=<rpm_filename.rpm> .`.
+Additionally, build the queue docker image separately by passing `-t cloudify-manager-queue -f Dockerfile.queue`.
 
-docker run --name cloudify-manager -v $(pwd)/config2.yaml:/tmp/config.yaml -v $(pwd)/rabbitmq-cert.pem:/tmp/rabbitmq-cert.pem cloudify-manager
-docker exec -it cloudify-manager tail -f  /var/log/cloudify/manager/cfy_manager.log
-docker exec -it cloudify-manager grep Finished /var/log/cloudify/manager/cfy_manager.log
 
-docker cp cloudify-manager:/etc/cloudify/ssl/cloudify_internal_ca_key.pem ca_key.pem
-docker cp cloudify-manager:/etc/cloudify/ssl/cloudify_internal_ca_cert.pem ca_cert.pem
+## Running a container
+Note that the config file must include the following to use the new service management.
+```
+service_management: supervisord
+skip_sudo: true
+save_config: false
+```
+When mounting the config file, make sure to set up permissions so that the in-container user is able to read the mounted config file.
+The in-container cfyuser user (in the manager image) is created with UID 1500, and the in-container rabbitmq user (in the queue image) is created with UID 1501.
 
-docker run --name cloudify-manager-2 -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN  -v $(pwd)/config3.yaml:/etc/cloudify/config.yaml  -v $(pwd)/rabbitmq-cert.pem:/tmp/rabbitmq-cert.pem -v $(pwd)/ca_cert.pem:/tmp/ca_cert.pem -v $(pwd)/ca_key.pem:/tmp/ca_key.pem cloudify-manager
+Example config.yaml files for all the containers are inside of .circleci/new_docker
 
-docker exec -it cloudify-manager-2 tail -f  /var/log/cloudify/manager/cfy_manager.log
-docker exec -it cloudify-manager-2 grep Finished /var/log/cloudify/manager/cfy_manager.log
+1. First, create a database, for example by doing `docker run --name postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=postgres -e POSTGRES_PASSWORD=postgres -d postgres`.
+2. Then, create the queue container: `docker run --name cloudify-manager-queue -d -v $(pwd)/config_queue.yaml:/etc/cloudify/config.yaml cloudify-manager-queue`.
+3. Allow some time (about 10 seconds) for the queue container to boot.
+4. Set up certificates as needed, eg. copy the rabbitmq CA cert out of the queue container so that it can be mounted in the manager container.
+5. Run the manager container:
+```bash
+docker run \
+    --name cloudify-manager \
+    -d \
+    -v $(pwd)/config.yaml:/tmp/config.yaml \
+    --cap-drop SETUID \
+    --cap-drop SETGID \
+    --cap-drop NET_BIND_SERVICE \
+    --security-opt no-new-privileges \
+    cloudify-manager
+```

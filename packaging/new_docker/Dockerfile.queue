@@ -1,6 +1,7 @@
 FROM centos:7
 
 ARG rpm_file=cloudify-manager-install.rpm
+RUN useradd -ms /bin/bash --home-dir /etc/rabbitmq -u 1501 rabbitmq
 
 # This should save some time for the installations of all these programs
 RUN yum install -y deltarpm
@@ -22,6 +23,7 @@ RUN chmod +x /opt/cloudify-starter.sh
 RUN cfy_manager install --only-install --verbose
 RUN chown rabbitmq: /etc/supervisord.d
 RUN mkdir -p /var/log/supervisor && chown rabbitmq: /var/log/supervisor
+RUN chown rabbitmq: -R /etc/rabbitmq
 RUN chown rabbitmq: -R /var/log/cloudify
 RUN chown rabbitmq: -R /etc/cloudify
 RUN mkdir /run/rabbitmq && chown rabbitmq: -R /run/rabbitmq
