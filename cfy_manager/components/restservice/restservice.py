@@ -60,8 +60,7 @@ from ...logger import (
     get_logger,
 )
 from ...exceptions import BootstrapError, NetworkError
-from ...utils import certificates, common
-from ...utils.systemd import systemd
+from ...utils import certificates, common, service
 from ...utils.install import yum_install, yum_remove
 from ...utils.network import get_auth_headers, wait_for_port
 from ...utils.files import (
@@ -236,10 +235,10 @@ class RestService(BaseComponent):
                 'REST service returned malformed JSON: {0}'.format(e))
 
     def _verify_restservice_alive(self):
-        systemd.verify_alive(RESTSERVICE)
+        service.verify_alive(RESTSERVICE)
 
-        logger.info('Verifying Rest service is working as expected...')
-        self._verify_restservice()
+        # logger.info('Verifying Rest service is working as expected...')
+        # self._verify_restservice()
 
     def _configure_db(self):
         configs = {
@@ -248,7 +247,7 @@ class RestService(BaseComponent):
             'security_config': REST_SECURITY_CONFIG_PATH
         }
         config[CLUSTER_JOIN] = False
-
+        logger.info('_configure_db')
         if config[CLEAN_DB]:
             db.drop_db()
 
@@ -405,8 +404,8 @@ class RestService(BaseComponent):
         deploy(os.path.join(CONFIG_PATH, 'haproxy.cfg'),
                '/etc/haproxy/haproxy.cfg')
 
-        systemd.enable('haproxy', append_prefix=False)
-        systemd.restart('haproxy', append_prefix=False)
+        service.enable('haproxy', append_prefix=False)
+        service.restart('haproxy', append_prefix=False)
         self._wait_for_haproxy_startup()
 
     @staticmethod
@@ -470,24 +469,16 @@ class RestService(BaseComponent):
 
         self._make_paths()
         self._configure_restservice()
+        service.configure(RESTSERVICE)
         self._configure_db()
         if config[POSTGRESQL_CLIENT][SERVER_PASSWORD]:
             logger.info('Removing postgres password from config.yaml')
             config[POSTGRESQL_CLIENT][SERVER_PASSWORD] = '<removed>'
-        systemd.configure(RESTSERVICE)
-        systemd.restart(RESTSERVICE)
-        if config[CLUSTER_JOIN]:
-            logger.info('Extra node in cluster, will verify rest-service '
-                        'after clustering configured')
-        else:
-            self._verify_restservice_alive()
-            self._upload_cloudify_license()
-
         logger.notice('Rest Service successfully configured')
 
     def remove(self):
         logger.notice('Removing Restservice...')
-        systemd.remove(RESTSERVICE, service_file=False)
+        service.remove(RESTSERVICE, service_file=False)
         remove_logrotate(RESTSERVICE)
 
         yum_remove('cloudify-rest-service')
@@ -506,11 +497,16 @@ class RestService(BaseComponent):
 
     def start(self):
         logger.notice('Starting Restservice...')
-        systemd.start(RESTSERVICE)
-        self._verify_restservice_alive()
+        service.start(RESTSERVICE)
+        if config.get(CLUSTER_JOIN):
+            logger.info('Extra node in cluster, will verify rest-service '
+                        'after clustering configured')
+        else:
+            self._verify_restservice_alive()
+            self._upload_cloudify_license()
         logger.notice('Restservice successfully started')
 
     def stop(self):
         logger.notice('Stopping Restservice...')
-        systemd.stop(RESTSERVICE)
+        service.stop(RESTSERVICE)
         logger.notice('Restservice successfully stopped')

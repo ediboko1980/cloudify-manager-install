@@ -18,7 +18,7 @@ import json
 import argh
 import yaml
 
-from ..utils.systemd import systemd
+from ..utils import service
 from ..utils.files import update_yaml_file, sudo_read
 from ..logger import get_logger, setup_console_logger
 from ..constants import STATUS_REPORTER, STATUS_REPORTER_CONFIGURATION_PATH
@@ -103,23 +103,23 @@ def configure(managers_ip=[], user_name='', token='', ca_path='',
                      'cfyreporter',
                      'cfyreporter',
                      update_content)
-    systemd.restart(STATUS_REPORTER)
+    service.restart(STATUS_REPORTER)
     logger.notice('Component status reporting service configured')
 
 
 def start():
     logger.notice('Starting component status reporting service...')
-    systemd.start(STATUS_REPORTER)
+    service.start(STATUS_REPORTER)
     logger.notice('Started status reporting service')
 
 
 def stop():
     logger.notice('Stopping component status reporting service...')
-    systemd.stop(STATUS_REPORTER)
+    service.stop(STATUS_REPORTER)
     logger.notice('Component status reporting service stopped')
 
 
 def remove():
     logger.notice('Removing component status reporting service...')
-    systemd.remove(STATUS_REPORTER)
+    service.remove(STATUS_REPORTER)
     logger.notice('Component status reporting service removed')

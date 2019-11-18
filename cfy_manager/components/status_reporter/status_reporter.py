@@ -19,7 +19,7 @@ from ..base_component import BaseComponent
 
 from ...logger import get_logger
 from ...components import sources
-from ...utils.systemd import systemd
+from ...utils import service
 from ...utils.files import update_yaml_file
 from ...utils.install import yum_install, yum_remove
 from ...utils.files import (remove_files,
@@ -55,7 +55,7 @@ class StatusReporter(BaseComponent):
         reporter_settings = {'reporter_type': self.reporter_type,
                              'extra_config_flags':
                                  self._build_extra_config_flags()}
-        systemd.configure(STATUS_REPORTER,
+        service.configure(STATUS_REPORTER,
                           external_configure_params=reporter_settings)
         logger.notice('Generating node id...')
         node_id = self._generate_node_id()
@@ -75,7 +75,7 @@ class StatusReporter(BaseComponent):
     def remove(self):
         logger.notice('Removing status reporter {0}...'.format(
             self.reporter_type))
-        systemd.remove(STATUS_REPORTER)
+        service.remove(STATUS_REPORTER)
         yum_remove('cloudify-status-reporter')
         logger.info('Removing status reporter directory...')
         remove_files([STATUS_REPORTER_PATH])
