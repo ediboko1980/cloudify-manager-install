@@ -41,7 +41,7 @@ SERVICE_COMPONENTS = {
         "composer",
         "mgmtworker",
         "cli",
-        "usage_collector",
+        # "usage_collector",
         "patch",
         "sanity"
     ]
