@@ -35,7 +35,7 @@ from ..components_constants import (
     MANAGER_STATUS_REPORTER,
 )
 
-from ..service_components import DATABASE_SERVICE
+from ..service_components import DATABASE_SERVICE, QUEUE_SERVICE
 from ..service_names import (
     MANAGER,
     POSTGRESQL_CLIENT,
@@ -127,7 +127,13 @@ def _create_populate_db_args_dict():
         'premium': config[MANAGER][PREMIUM_EDITION],
         'rabbitmq_brokers': _create_rabbitmq_info(),
         'db_nodes': _create_db_nodes_info(),
-        'usage_collector': _create_usage_collector_info()
+        'usage_collector': _create_usage_collector_info(),
+        'amqp': {
+            'local': QUEUE_SERVICE in config[SERVICES_TO_INSTALL],
+            'policies': config[RABBITMQ]['policies'],
+            'username': config[RABBITMQ]['username'],
+            'password': config[RABBITMQ]['password']
+        }
     }
     manager_status_reporter_password = config.get(
         MANAGER_STATUS_REPORTER, {}).get(PASSWORD)
@@ -272,11 +278,14 @@ def populate_db(configs):
     args_dict = _create_populate_db_args_dict()
     script_output = _run_script(
         'create_tables_and_add_defaults.py', args_dict, configs)
-    tokens = json.loads(script_output)
+    script_output = json.loads(script_output)
+    if args_dict['amqp']['local']:
+        common.move(script_output['amqp_definitions'],
+                    '/etc/cloudify/rabbitmq/definitions.json')
 
-    for reporter in tokens:
+    for reporter, token in script_output['tokens'].items():
         conf_key = reporter_to_conf_key[reporter]
-        config[conf_key][constants.STATUS_REPORTER_TOKEN] = tokens[reporter]
+        config[conf_key][constants.STATUS_REPORTER_TOKEN] = token
     logger.notice('DB populated and AMQP resources successfully created')
 
 
