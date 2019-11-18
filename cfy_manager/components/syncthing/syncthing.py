@@ -17,34 +17,32 @@ import requests
 from os.path import join
 
 from cfy_manager.components import sources
-from ...base_component import BaseComponent
-from ...restservice.restservice import RestService
-from ...validations import _is_installed
-from ....config import config
-from ....logger import get_logger
-from ....constants import COMPONENTS_DIR, CA_CERT_PATH, INTERNAL_REST_PORT
-from ....components.components_constants import (
+from ..base_component import BaseComponent
+from ..restservice.restservice import RestService
+from ..validations import _is_installed
+from ...config import config
+from ...logger import get_logger
+from ...constants import COMPONENTS_DIR, CA_CERT_PATH, INTERNAL_REST_PORT
+from ...components.components_constants import (
     PRIVATE_IP,
     HOSTNAME,
     SCRIPTS,
     CLUSTER_JOIN
 )
-from ....components.service_components import (
+from ...components.service_components import (
     MANAGER_SERVICE,
     DATABASE_SERVICE,
     QUEUE_SERVICE
 )
-from ....components.service_names import (
+from ...components.service_names import (
     MANAGER,
-    CLUSTER,
     RESTSERVICE,
-    MGMTWORKER
 )
-from ....utils.common import sudo
-from ....utils.systemd import systemd
-from ....utils.install import yum_install
-from ....utils.files import write_to_tempfile
-from ....utils.network import get_auth_headers, wait_for_port
+from ...utils import service
+from ...utils.common import sudo
+from ...utils.install import yum_install
+from ...utils.files import write_to_tempfile
+from ...utils.network import get_auth_headers, wait_for_port
 
 REST_HOME_DIR = '/opt/manager'
 REST_CONFIG_PATH = join(REST_HOME_DIR, 'cloudify-rest.conf')
@@ -52,16 +50,16 @@ REST_AUTHORIZATION_CONFIG_PATH = join(REST_HOME_DIR, 'authorization.conf')
 REST_SECURITY_CONFIG_PATH = join(REST_HOME_DIR, 'rest-security.conf')
 
 logger = get_logger('cluster')
-SCRIPTS_PATH = join(COMPONENTS_DIR, MGMTWORKER, CLUSTER, SCRIPTS)
+SCRIPTS_PATH = join(COMPONENTS_DIR, 'syncthing', SCRIPTS)
 
 
-class Cluster(BaseComponent):
+class Syncthing(BaseComponent):
     API_VERSION = 'v3.1'
 
     def _verify_local_rest_service_alive(self, verify_rest_call=False):
         # Restarting rest-service to read the new replicated rest-security.conf
-        systemd.restart(RESTSERVICE)
-        systemd.verify_alive(RESTSERVICE)
+        service.restart(RESTSERVICE)
+        service.verify_alive(RESTSERVICE)
         rest_port = config[RESTSERVICE]['port']
 
         wait_for_port(rest_port)
@@ -85,21 +83,13 @@ class Cluster(BaseComponent):
                 logger.error(line)
 
     def _create_process_env(self):
-        env = {}
-        for value, envvar in [
-            (REST_CONFIG_PATH, 'MANAGER_REST_CONFIG_PATH'),
-            (REST_SECURITY_CONFIG_PATH, 'MANAGER_REST_SECURITY_CONFIG_PATH'),
-            (REST_AUTHORIZATION_CONFIG_PATH,
-             'MANAGER_REST_AUTHORIZATION_CONFIG_PATH'),
-        ]:
-            if value is not None:
-                env[envvar] = value
-        return env
+        return {'MANAGER_REST_CONFIG_PATH': REST_CONFIG_PATH}
 
-    def _run_syncthing_configuration_script(self, bootstrap_cluster):
+    def _run_syncthing_configuration_script(self, command, bootstrap_cluster):
         args_dict = {
             'hostname': config[MANAGER][HOSTNAME],
             'bootstrap_cluster': bootstrap_cluster,
+            'command': command
         }
         args_json_path = write_to_tempfile(args_dict, json_dump=True)
         cmd = [
@@ -128,18 +118,24 @@ class Cluster(BaseComponent):
                 _is_installed(DATABASE_SERVICE) and not\
                 _is_installed(QUEUE_SERVICE):
             # this flag is set inside of restservice._configure_db
-            join = config[CLUSTER_JOIN]
+            join = config.get(CLUSTER_JOIN)
             if join:
                 logger.notice(
                     'Adding manager "{0}" to the cluster, this may take a '
                     'while until config files finish replicating'
                     .format(config[MANAGER][HOSTNAME]))
-            self._run_syncthing_configuration_script(not join)
+            service.configure('syncthing')
+            self._run_syncthing_configuration_script('configure', not join)
             self._verify_local_rest_service_alive(verify_rest_call=True)
             logger.notice('Node has been added successfully!')
         else:
             logger.warn('Cluster must be instantiated with external DB '
                         'and Queue endpoints. Ignoring cluster configuration')
+
+    def start(self):
+        service.start('syncthing')
+        self._run_syncthing_configuration_script(
+            'start', not config.get(CLUSTER_JOIN))
 
     def remove(self):
         try:
