@@ -68,8 +68,8 @@ class StatusReporter(BaseComponent):
     def _generate_node_id():
         node_id = str(uuid.uuid4())
         update_yaml_file(STATUS_REPORTER_CONFIGURATION_PATH,
-                         'cfyreporter',
-                         'cfyreporter',
+                         'cfyuser',
+                         'cfyuser',
                          {'node_id': node_id})
         return node_id
 
