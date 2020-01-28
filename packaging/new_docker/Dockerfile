@@ -35,6 +35,7 @@ RUN chown cfyuser: -R /etc/nginx \
     /var/lib/rabbitmq \
     /var/log/rabbitmq \
     /etc/logrotate.d \
+    /var/lib/pgsql \
     /etc/cloudify || true
 RUN chown -f cfyuser: /opt/cloudify-stage \
     /opt/cloudify-composer \

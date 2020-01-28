@@ -125,6 +125,7 @@ jobs:
               docker build -t cloudify-manager-queue --build-arg config=config_queue.yaml -f Dockerfile .
               docker build -t cloudify-manager-db -f Dockerfile.db .
             popd
+
       - run:
           name: run containers
           command: |

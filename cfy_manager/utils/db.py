@@ -35,7 +35,6 @@ def run_psql_command(command, db_key):
         # In case the default user is postgres and we're in AIO installation,
         # "peer" authentication is used
         if pg_config['server_username'] == 'postgres':
-            base_command.extend(['-u', 'postgres'])
             peer_authentication = True
 
     # Run psql with just the results output without headers (-t),

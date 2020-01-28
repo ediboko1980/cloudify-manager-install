@@ -156,7 +156,7 @@ class PostgresqlServer(BaseComponent):
             pass
 
         logger.debug('Installing PostgreSQL Server service...')
-        service.enable(SYSTEMD_SERVICE_NAME, append_prefix=False)
+        service.enable(SYSTEMD_SERVICE_NAME)
 
         logger.debug('Setting PostgreSQL Server logs path...')
         ps_95_logs_path = join(PGSQL_LIB_DIR, '9.5', 'data', 'pg_log')
@@ -242,7 +242,6 @@ class PostgresqlServer(BaseComponent):
         temp_hba_path = self._write_new_hba_file(lines,
                                                  enable_remote_connections)
         common.move(temp_hba_path, PG_HBA_CONF)
-        common.chown(POSTGRES_USER, POSTGRES_USER, PG_HBA_CONF)
 
         include_line = "include = '{config}'".format(config=PG_CONF_PATH)
         already_included = common.sudo(
@@ -257,7 +256,6 @@ class PostgresqlServer(BaseComponent):
 
         temp_pg_conf_path = self._write_new_pgconfig_file()
         common.move(temp_pg_conf_path, PG_CONF_PATH)
-        common.chown(POSTGRES_USER, POSTGRES_USER, PG_CONF_PATH)
         self._configure_ssl()
 
     def _update_postgres_password(self):
@@ -1468,7 +1466,7 @@ class PostgresqlServer(BaseComponent):
             service.stop('etcd', append_prefix=False)
             service.stop('patroni', append_prefix=False)
         else:
-            service.stop(SYSTEMD_SERVICE_NAME, append_prefix=False)
+            service.stop(SYSTEMD_SERVICE_NAME, append_prefix=True)
         logger.notice('PostgreSQL Server successfully stopped')
 
     def validate_dependencies(self):
