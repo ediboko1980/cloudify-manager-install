@@ -75,7 +75,8 @@ class StatusReporter(BaseComponent):
     def _generate_basic_reporter_settings(user_name):
         node_id = str(uuid.uuid4())
         update_status_reporter_config({'node_id': node_id,
-                                       'user_name': user_name})
+                                       'user_name': user_name,
+                                       'log_level': 'DEBUG'})
         return node_id
 
     def remove(self):
@@ -104,7 +105,7 @@ class StatusReporter(BaseComponent):
                            'token')
             return
         logger.notice('Starting Status Reporter service...')
-        service.start(STATUS_REPORTER, ignore_failure=True)
+        service.start(self.reporter_type, ignore_failure=True)
         logger.notice('Started Status Reporter service')
 
     def stop(self):
@@ -112,5 +113,5 @@ class StatusReporter(BaseComponent):
             logger.warning('There is no status reporter service up')
             return
         logger.notice('Stopping Status Reporter service...')
-        service.stop(STATUS_REPORTER)
+        service.stop(self.reporter_type)
         logger.notice('Status Reporter service stopped')
