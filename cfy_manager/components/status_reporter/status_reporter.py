@@ -62,7 +62,7 @@ class StatusReporter(BaseComponent):
         reporter_settings = {'reporter_type': self.reporter_type,
                              'extra_config_flags':
                                  self._build_extra_config_flags()}
-        service.configure(self.reporter_type,
+        service.configure(STATUS_REPORTER,
                           external_configure_params=reporter_settings,
                           src_dir=STATUS_REPORTER)
         logger.notice('Generating node id...')
@@ -82,7 +82,7 @@ class StatusReporter(BaseComponent):
     def remove(self):
         logger.notice('Removing status reporter {0}...'.format(
             self.reporter_type))
-        service.remove(self.reporter_type)
+        service.remove(STATUS_REPORTER)
         yum_remove('cloudify-status-reporter')
         logger.info('Removing status reporter directory...')
         remove_files([STATUS_REPORTER_PATH])
@@ -105,7 +105,7 @@ class StatusReporter(BaseComponent):
                            'token')
             return
         logger.notice('Starting Status Reporter service...')
-        service.start(self.reporter_type, ignore_failure=True)
+        service.start(STATUS_REPORTER, ignore_failure=True)
         logger.notice('Started Status Reporter service')
 
     def stop(self):
@@ -113,5 +113,5 @@ class StatusReporter(BaseComponent):
             logger.warning('There is no status reporter service up')
             return
         logger.notice('Stopping Status Reporter service...')
-        service.stop(self.reporter_type)
+        service.stop(STATUS_REPORTER)
         logger.notice('Status Reporter service stopped')
