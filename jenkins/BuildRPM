@@ -1,0 +1,15 @@
+pipeline {
+    agent {
+        docker 'rpmbuild/centos7'
+    }
+
+    stages {
+        stage("Build RPM") {
+            steps {
+                sh 'echo "hello world"'
+                checkout scm
+                sh 'ls -la'
+            }
+        }
+    }
+}
