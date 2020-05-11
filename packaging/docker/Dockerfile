@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7/ubi
+FROM centos:7
 
 ARG rpm_file=cloudify-manager-install.rpm
 ARG config=config.yaml
