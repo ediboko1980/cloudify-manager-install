@@ -6,4 +6,4 @@ WantedBy=multi-user.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/bash -c "echo hello"
+ExecStart=/opt/cloudify/starter.sh
