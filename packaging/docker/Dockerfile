@@ -19,9 +19,9 @@ EXPOSE 80 443 5672 53333
 COPY $rpm_file /tmp/cloudify-manager-install.rpm
 RUN yum install -y /tmp/cloudify-manager-install.rpm && rm /tmp/cloudify-manager-install.rpm
 COPY $config /etc/cloudify/config.yaml
-
+COPY starter.service /usr/lib/systemd/system/cloudify-starter.service
 RUN cfy_manager install --only-install --verbose
-
+RUN systemctl enable cloudify-starter.service
 STOPSIGNAL SIGRTMIN+3
 VOLUME [ "/sys/fs/cgroup" ]
 CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
