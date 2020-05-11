@@ -25,6 +25,9 @@ COPY starter.sh /opt/cloudify/starter.sh
 COPY starter.service /usr/lib/systemd/system/cloudify-starter.service
 RUN systemctl enable cloudify-starter.service
 
+RUN usermod -aG cfyuser rabbitmq
+RUN chmod g+rx /etc/cloudify
+
 STOPSIGNAL SIGRTMIN+3
 VOLUME [ "/sys/fs/cgroup" ]
 CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
