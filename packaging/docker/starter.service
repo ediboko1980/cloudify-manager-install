@@ -1,6 +1,6 @@
 [Unit]
-Wants=default.target
-After=default.target
+WantedBy=multi-user.target
+After=basic.target network.target system.slice systemd-journald.socket
 
 [Service]
 Type=oneshot
