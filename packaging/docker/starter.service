@@ -1,6 +1,6 @@
 [Unit]
-Wants=multi-user.target
-After=multi-user.target
+Wants=default.target
+After=default.target
 
 [Service]
 Type=oneshot
