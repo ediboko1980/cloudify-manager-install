@@ -103,29 +103,14 @@ jobs:
           name: Build base container
           command: |
             set -eux
+            ls -la /tmp/workspace
+            cp /tmp/workspace/*.rpm cloudify-manager-install.rpm
             docker build --tag ${IMAGE_NAME} packaging/docker
       - run:
           name: Run base container
           command: |
             set -eux
-            docker run --name ${CONTAINER_NAME} -d -v /tmp/workspace:/tmp/workspace:ro -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN ${IMAGE_NAME}
-      - run:
-          name: Prepare base container
-          command: |
-            set -eux
-            docker exec -d ${CONTAINER_NAME} sh -c "systemctl start sshd"
-      - run:
-          name: Install the created RPM
-          command: |
-            set -eux
-            docker exec -t ${CONTAINER_NAME} /bin/bash -c "yum install -y /tmp/workspace/x86_64/*.rpm"
-      - run:
-          name: Install Cloudify Manager
-          command: |
-            set -eux
-            cd packaging/docker
-            chmod +x install_manager.sh
-            ./install_manager.sh
+            docker run --name ${CONTAINER_NAME} -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN ${IMAGE_NAME}
       - run:
           name: Check Manager Status
           command: |
