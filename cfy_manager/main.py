@@ -50,7 +50,7 @@ from .components.components_constants import (
 from .components.globals import set_globals
 from cfy_manager.utils.common import output_table
 from .components.service_names import MANAGER, POSTGRESQL_SERVER
-from .components.validations import validate
+from .components.validations import validate, validate_dependencies
 from .config import config
 from .constants import (
     VERBOSE_HELP_MSG,
@@ -676,6 +676,7 @@ def validate_command(verbose=False,
         config_write_required=False
     )
     validate(components=components)
+    validate_dependencies(components=components)
 
 
 @argh.arg('--private-ip', help=PRIVATE_IP_HELP_MSG)
@@ -727,6 +728,7 @@ def install(verbose=False,
     )
     logger.notice('Installing desired components...')
     validate(components=components, only_install=only_install)
+    validate_dependencies(components=components)
     set_globals(only_install=only_install)
 
     yum_install(_get_packages())
