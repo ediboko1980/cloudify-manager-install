@@ -520,6 +520,7 @@ class RabbitMQ(BaseComponent):
 
     def start(self):
         logger.notice('Starting RabbitMQ...')
+        self._possibly_set_nodename()
         self._start_rabbitmq()
         if not config[RABBITMQ]['join_cluster']:
             # Users will be synced with the cluster if we're joining one
