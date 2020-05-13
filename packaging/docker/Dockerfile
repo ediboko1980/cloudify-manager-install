@@ -7,6 +7,7 @@ ARG gid=1500
 
 RUN groupadd -g $gid cfyuser
 RUN useradd -ms /bin/bash -g $gid --home-dir /etc/cloudify -u $uid cfyuser
+RUN useradd -ms /bin/bash -g $gid --home-dir /etc/cloudify -u 1501 cfyreporter
 
 RUN yum install -y openssl-1.0.2k libselinux-utils \
     logrotate python-setuptools python-backports \
