@@ -100,17 +100,21 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - run:
-          name: Build base container
+          name: Build manager container
           command: |
             set -eux
             ls -la /tmp/workspace
-            cp /tmp/workspace/*.rpm cloudify-manager-install.rpm
-            docker build --tag ${IMAGE_NAME} packaging/docker
+            pushd packaging/docker
+              cp /tmp/workspace/x86_64/*.rpm cloudify-manager-install.rpm
+              docker build --tag ${IMAGE_NAME} .
+            popd
       - run:
-          name: Run base container
+          name: Run manager container
           command: |
             set -eux
-            docker run --name ${CONTAINER_NAME} -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN ${IMAGE_NAME}
+            docker run --name ${CONTAINER_NAME} -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock ${IMAGE_NAME}
+            docker exec ${CONTAINER_NAME} systemctl start cloudify-starter
+            docker exec ${CONTAINER_NAME} journalctl -n10 -u cloudify-starter
       - run:
           name: Check Manager Status
           command: |
