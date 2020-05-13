@@ -837,6 +837,7 @@ def start(include_components, verbose=False):
     """ Start Cloudify Manager services """
     _prepare_execution(verbose, include_components=include_components)
     _validate_components_prepared('start')
+    set_globals()
     logger.notice('Starting Cloudify Manager services...')
     _start_components()
     logger.notice('Cloudify Manager services successfully started!')
