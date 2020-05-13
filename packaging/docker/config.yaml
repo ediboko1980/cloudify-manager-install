@@ -12,7 +12,7 @@ sanity:
   skip_sanity: true
 
 postgresql_client:
-  server_username: cfyuser
+  server_username: postgres
 
 services_to_install:
 - database_service
