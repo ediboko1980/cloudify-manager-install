@@ -520,6 +520,8 @@ class RabbitMQ(BaseComponent):
 
     def start(self):
         logger.notice('Starting RabbitMQ...')
+        if self._installing_manager():
+            config[RABBITMQ]['ca_path'] = constants.CA_CERT_PATH
         self._possibly_set_nodename()
         self._start_rabbitmq()
         if not config[RABBITMQ]['join_cluster']:
