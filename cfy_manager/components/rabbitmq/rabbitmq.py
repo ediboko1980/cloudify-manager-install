@@ -520,6 +520,7 @@ class RabbitMQ(BaseComponent):
 
     def start(self):
         logger.notice('Starting RabbitMQ...')
+        self._possibly_set_nodename()
         if self._installing_manager():
             config[RABBITMQ]['ca_path'] = constants.CA_CERT_PATH
         if common.is_all_in_one_manager():
@@ -530,7 +531,6 @@ class RabbitMQ(BaseComponent):
                     'networks': config['networks']
                 }
             }
-        self._possibly_set_nodename()
         self._start_rabbitmq()
         if not config[RABBITMQ]['join_cluster']:
             # Users will be synced with the cluster if we're joining one
