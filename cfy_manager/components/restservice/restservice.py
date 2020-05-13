@@ -220,28 +220,28 @@ class RestService(BaseComponent):
         rest_port = config[RESTSERVICE]['port']
         url = REST_URL.format(port=rest_port, endpoint='status')
         wait_for_port(rest_port)
-        req = Request(url, headers=get_auth_headers())
+        # req = Request(url, headers=get_auth_headers())
 
-        try:
-            response = urlopen(req)
-        # keep an erroneous HTTP response to examine its status code, but still
-        # abort on fatal errors like being unable to connect at all
-        except HTTPError as e:
-            response = e
-        except URLError as e:
-            raise NetworkError(
-                'REST service returned an invalid response: {0}'.format(e))
-        if response.code != 200:
-            raise NetworkError(
-                'REST service returned an unexpected response: '
-                '{0}'.format(response.code)
-            )
+        # try:
+        #     response = urlopen(req)
+        # # keep an erroneous HTTP response to examine its status code, but still
+        # # abort on fatal errors like being unable to connect at all
+        # except HTTPError as e:
+        #     response = e
+        # except URLError as e:
+        #     raise NetworkError(
+        #         'REST service returned an invalid response: {0}'.format(e))
+        # if response.code != 200:
+        #     raise NetworkError(
+        #         'REST service returned an unexpected response: '
+        #         '{0}'.format(response.code)
+        #     )
 
-        try:
-            json.load(response)
-        except ValueError as e:
-            raise BootstrapError(
-                'REST service returned malformed JSON: {0}'.format(e))
+        # try:
+        #     json.load(response)
+        # except ValueError as e:
+        #     raise BootstrapError(
+        #         'REST service returned malformed JSON: {0}'.format(e))
 
     def _verify_restservice_alive(self):
         systemd.verify_alive(RESTSERVICE)
