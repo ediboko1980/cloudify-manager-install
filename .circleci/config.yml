@@ -114,7 +114,7 @@ jobs:
             set -eux
             docker run --name ${CONTAINER_NAME} -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock ${IMAGE_NAME}
             docker exec ${CONTAINER_NAME} systemctl start cloudify-starter
-            docker exec ${CONTAINER_NAME} journalctl -n10 -u cloudify-starter
+            docker exec ${CONTAINER_NAME} journalctl -u cloudify-starter
       - run:
           name: Check Manager Status
           command: |
