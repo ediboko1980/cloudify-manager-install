@@ -20,9 +20,9 @@ from ..service_components import MANAGER_SERVICE
 
 from ...config import config
 from ...logger import get_logger
-from ...utils.common import is_installed, is_premium_installed
+from ...utils.common import is_installed
 from ...utils.systemd import systemd
-from ...utils.install import is_package_available
+from ...utils.install import is_package_available, is_premium_installed
 from ...utils.node import update_status_reporter_config
 from ...utils.files import (remove_files,
                             read_yaml_file)
