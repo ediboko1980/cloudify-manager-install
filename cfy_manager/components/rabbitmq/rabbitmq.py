@@ -522,6 +522,14 @@ class RabbitMQ(BaseComponent):
         logger.notice('Starting RabbitMQ...')
         if self._installing_manager():
             config[RABBITMQ]['ca_path'] = constants.CA_CERT_PATH
+        if common.is_all_in_one_manager():
+            # We must populate the brokers table for an all-in-one manager
+            config[RABBITMQ]['cluster_members'] = {
+                config[MANAGER][HOSTNAME]: {
+                    'node_id': 'ALL_IN_ONE',
+                    'networks': config['networks']
+                }
+            }
         self._possibly_set_nodename()
         self._start_rabbitmq()
         if not config[RABBITMQ]['join_cluster']:
