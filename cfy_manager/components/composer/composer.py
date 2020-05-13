@@ -219,6 +219,9 @@ class Composer(BaseComponent):
         logger.notice('Cloudify Composer successfully installed')
 
     def configure(self):
+        if not os.path.exists('/opt/cloudify-composer'):
+            logger.notice('Skipping Cloudify Composer...')
+            return
         logger.notice('Configuring Cloudify Composer...')
         self._update_composer_config()
         config[COMPOSER][SERVICE_USER] = COMPOSER_USER
@@ -235,6 +238,9 @@ class Composer(BaseComponent):
         logger.notice('Cloudify Composer successfully removed')
 
     def start(self):
+        if not os.path.exists('/opt/cloudify-composer'):
+            logger.notice('Skipping Cloudify Composer...')
+            return
         logger.notice('Starting Cloudify Composer...')
         self._run_db_migrate()
         systemd.restart(COMPOSER)
