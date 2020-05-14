@@ -131,12 +131,14 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - run:
-          name: Build base container
+          name: Build manager container
           command: |
             set -eux
-            docker build --tag ${IMAGE_NAME} packaging/docker
-            cp -fr /tmp/workspace/x86_64/*.rpm .circleci/cluster
-            docker build --tag ${CLUSTER_IMAGE} .circleci/cluster
+            ls -la /tmp/workspace
+            pushd packaging/docker
+              cp /tmp/workspace/x86_64/*.rpm cloudify-manager-install.rpm
+              docker build --tag ${CLUSTER_IMAGE} .
+            popd
       - run:
           name: Prepare name envvars
           command: |
