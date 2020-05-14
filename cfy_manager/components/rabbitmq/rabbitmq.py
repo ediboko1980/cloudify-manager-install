@@ -400,7 +400,6 @@ class RabbitMQ(BaseComponent):
 
         if self._installing_manager():
             has_ca_key = certificates.handle_ca_cert(self.logger)
-            config[RABBITMQ]['ca_path'] = constants.CA_CERT_PATH
         else:
             has_ca_key = False
             # If we're not installing the manager and user certs were not
@@ -492,13 +491,8 @@ class RabbitMQ(BaseComponent):
                     RABBITMQ, '127.0.0.1', SECURE_PORT)
             )
 
-    def configure(self):
-        logger.notice('Configuring RabbitMQ...')
+    def _set_config(self):
         self._possibly_set_nodename()
-        self._set_erlang_cookie()
-        self._possibly_add_hosts_entries()
-        systemd.configure(RABBITMQ,
-                          user='rabbitmq', group='rabbitmq')
         if common.is_all_in_one_manager():
             # We must populate the brokers table for an all-in-one manager
             config[RABBITMQ]['cluster_members'] = {
@@ -507,6 +501,16 @@ class RabbitMQ(BaseComponent):
                     'networks': config['networks']
                 }
             }
+        if self._installing_manager():
+            config[RABBITMQ]['ca_path'] = constants.CA_CERT_PATH
+
+    def configure(self):
+        logger.notice('Configuring RabbitMQ...')
+        self._set_erlang_cookie()
+        self._set_config()
+        self._possibly_add_hosts_entries()
+        systemd.configure(RABBITMQ,
+                          user='rabbitmq', group='rabbitmq')
         self._generate_rabbitmq_certs()
         self._init_service()
         logger.notice('RabbitMQ successfully configured')
@@ -520,6 +524,7 @@ class RabbitMQ(BaseComponent):
 
     def start(self):
         logger.notice('Starting RabbitMQ...')
+        self._set_config()
         self._start_rabbitmq()
         if not config[RABBITMQ]['join_cluster']:
             # Users will be synced with the cluster if we're joining one
