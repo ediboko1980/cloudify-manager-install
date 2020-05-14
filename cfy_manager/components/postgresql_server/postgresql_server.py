@@ -1433,8 +1433,6 @@ class PostgresqlServer(BaseComponent):
             if config[POSTGRESQL_SERVER][POSTGRES_PASSWORD]:
                 self._update_postgres_password()
 
-            systemd.restart(SYSTEMD_SERVICE_NAME, append_prefix=False)
-            systemd.verify_alive(SYSTEMD_SERVICE_NAME, append_prefix=False)
         logger.notice('PostgreSQL Server successfully configured')
 
     def remove(self):
@@ -1460,7 +1458,7 @@ class PostgresqlServer(BaseComponent):
             systemd.start('patroni', append_prefix=False)
             systemd.verify_alive('patroni', append_prefix=False)
         else:
-            systemd.start(SYSTEMD_SERVICE_NAME, append_prefix=False)
+            systemd.restart(SYSTEMD_SERVICE_NAME, append_prefix=False)
             systemd.verify_alive(SYSTEMD_SERVICE_NAME, append_prefix=False)
         logger.notice('PostgreSQL Server successfully started')
 

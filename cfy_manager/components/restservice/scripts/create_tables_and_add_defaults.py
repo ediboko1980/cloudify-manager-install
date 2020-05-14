@@ -225,6 +225,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     config.instance.load_configuration(from_db=False)
+    with open('/tmp/foo.log', 'w') as f:
+        with open('/opt/manager/cloudify-rest.conf') as f2:
+            f.write(f2.read())
     setup_flask_app(
         manager_ip=config.instance.postgresql_host,
         hash_salt=config.instance.security_hash_salt,
