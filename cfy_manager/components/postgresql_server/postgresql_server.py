@@ -154,8 +154,8 @@ class PostgresqlServer(BaseComponent):
             pass
 
         logger.debug('Installing PostgreSQL Server service...')
-        systemd.enable(SYSTEMD_SERVICE_NAME, append_prefix=False)
-        systemd.restart(SYSTEMD_SERVICE_NAME, append_prefix=False)
+        # systemd.enable(SYSTEMD_SERVICE_NAME, append_prefix=False)
+        # systemd.restart(SYSTEMD_SERVICE_NAME, append_prefix=False)
 
         logger.debug('Setting PostgreSQL Server logs path...')
         ps_95_logs_path = join(PGSQL_LIB_DIR, '9.5', 'data', 'pg_log')
@@ -163,8 +163,8 @@ class PostgresqlServer(BaseComponent):
         if not isdir(ps_95_logs_path) and not islink(join(LOG_DIR, 'pg_log')):
             files.ln(source=ps_95_logs_path, target=LOG_DIR, params='-s')
 
-        logger.info('Starting PostgreSQL Server service...')
-        systemd.restart(SYSTEMD_SERVICE_NAME, append_prefix=False)
+        # logger.info('Starting PostgreSQL Server service...')
+        # systemd.restart(SYSTEMD_SERVICE_NAME, append_prefix=False)
 
     def _read_old_file_lines(self, file_path):
         temp_file_path = files.write_to_tempfile('')
