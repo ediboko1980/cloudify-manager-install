@@ -362,8 +362,8 @@ class PostgresqlServer(BaseComponent):
                 '{users}'.format(users=', '.join(supported_etcd_users))
             )
 
-        if local_only:
-            addresses = [config[MANAGER][PRIVATE_IP]]
+        if local_only or True:
+            addresses = ['127.0.0.1']
         else:
             addresses = [
                 node['ip'] for node in
@@ -825,11 +825,6 @@ class PostgresqlServer(BaseComponent):
                 'password': pgsrv['cluster']['etcd']['patroni_password']
             },
         }
-        for node in pgsrv['cluster']['nodes'].values():
-            self._add_node_to_pg_hba(
-                patroni_conf['bootstrap']['dcs']['postgresql']['pg_hba'],
-                node['ip']
-            )
         common.sudo([
             'touch', patroni_config_path,
         ])
@@ -1423,7 +1418,7 @@ class PostgresqlServer(BaseComponent):
         logger.notice('Configuring PostgreSQL Server...')
         files.copy_notice(POSTGRESQL_SERVER)
 
-        if config[POSTGRESQL_SERVER]['cluster']['nodes']:
+        if config[POSTGRESQL_SERVER]['cluster']:
             self._configure_cluster()
         else:
             self._init_postgresql_server()
@@ -1453,7 +1448,7 @@ class PostgresqlServer(BaseComponent):
 
     def start(self):
         logger.notice('Starting PostgreSQL Server...')
-        if config[POSTGRESQL_SERVER]['cluster']['nodes']:
+        if config[POSTGRESQL_SERVER]['cluster']:
             self._start_etcd()
             systemd.start('patroni', append_prefix=False)
             systemd.verify_alive('patroni', append_prefix=False)
