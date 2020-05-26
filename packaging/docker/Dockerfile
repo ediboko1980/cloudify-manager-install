@@ -29,7 +29,7 @@ RUN cfy_manager install --only-install --verbose
 COPY starter.service /usr/lib/systemd/system/cloudify-starter.service
 RUN systemctl enable cloudify-starter.service
 
-RUN usermod -aG cfyuser rabbitmq
+RUN usermod -aG cfyuser rabbitmq || true
 RUN chmod g+rx /etc/cloudify
 
 STOPSIGNAL SIGRTMIN+3
