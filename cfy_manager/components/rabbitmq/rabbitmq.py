@@ -472,6 +472,20 @@ class RabbitMQ(BaseComponent):
                     RABBITMQ, '127.0.0.1', SECURE_PORT)
             )
 
+    def _validate_rabbitmq_running_noretry(self):
+        logger.info('Making sure RabbitMQ is live...')
+        service.verify_alive(RABBITMQ)
+
+        result = self._rabbitmqctl(['status'])
+        if result.returncode != 0:
+            raise ValidationError('Rabbitmq failed to start')
+
+        if not is_port_open(SECURE_PORT, host='127.0.0.1'):
+            raise NetworkError(
+                '{0} error: port {1}:{2} was not open'.format(
+                    RABBITMQ, '127.0.0.1', SECURE_PORT)
+            )
+
     def _set_config(self):
         self._possibly_set_nodename()
         if common.is_all_in_one_manager():
@@ -551,6 +565,7 @@ class RabbitMQ(BaseComponent):
         wait_for_port(SECURE_PORT)
 
         self._validate_rabbitmq_running()
+        self._validate_rabbitmq_running_noretry()
         self._possibly_join_cluster()
         logger.notice('RabbitMQ successfully started')
 
