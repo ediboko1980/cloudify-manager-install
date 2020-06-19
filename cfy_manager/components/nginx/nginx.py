@@ -170,7 +170,7 @@ class Nginx(BaseComponent):
         ]
         resources_list += [
             resource(
-                src=join(CONFIG_PATH, 'monitoring_only', file_name),
+                src=join(CONFIG_PATH, file_name),
                 dst='/etc/nginx/conf.d/{0}'.format(file_name)) for
             file_name in [
                 'https-internal-rest-server.cloudify',
