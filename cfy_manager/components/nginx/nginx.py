@@ -167,18 +167,17 @@ class Nginx(BaseComponent):
                 src=join(CONFIG_PATH, 'nginx.conf'),
                 dst='/etc/nginx/nginx.conf'
             ),
-            resource(
-                src=join(CONFIG_PATH, 'logs-conf.cloudify'),
-                dst='/etc/nginx/conf.d/logs-conf.cloudify'
-            ),
         ]
-        if do_monitoring:
-            resources_list += [
-                resource(
-                    src=join(CONFIG_PATH, 'redirect-to-monitoring.cloudify'),
-                    dst='/etc/nginx/conf.d/redirect-to-monitoring.cloudify'
-                ),
+        resources_list += [
+            resource(
+                src=join(CONFIG_PATH, 'monitoring_only', file_name),
+                dst='/etc/nginx/conf.d/{0}'.format(file_name)) for
+            file_name in [
+                'https-internal-rest-server.cloudify',
+                'cloudify.conf',
+                'logs-conf.cloudify',
             ]
+        ]
         if do_manager:
             resources_list += [
                 resource(
@@ -198,15 +197,12 @@ class Nginx(BaseComponent):
                     'composer-location.cloudify',
                 ]
             ]
-        elif do_monitoring:
+        if do_monitoring:
             resources_list += [
                 resource(
-                    src=join(CONFIG_PATH, 'monitoring_only', file_name),
-                    dst='/etc/nginx/conf.d/{0}'.format(file_name)) for
-                file_name in [
-                    'https-internal-rest-server.cloudify',
-                    'cloudify.conf',
-                ]
+                    src=join(CONFIG_PATH, 'redirect-to-monitoring.cloudify'),
+                    dst='/etc/nginx/conf.d/redirect-to-monitoring.cloudify'
+                ),
             ]
         return resources_list
 
