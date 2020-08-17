@@ -21,7 +21,6 @@ import re
 import sys
 import time
 import subprocess
-from traceback import format_exception
 
 import argh
 
@@ -444,20 +443,6 @@ def _print_time():
     logger.notice(
         'Finished in {0} minutes and {1} seconds'.format(int(m), int(s))
     )
-
-
-def _exception_handler(type_, value, traceback):
-    remove_temp_files()
-
-    error = type_.__name__
-    if str(value):
-        error = '{0}: {1}'.format(error, str(value))
-    logger.error(error)
-    debug_traceback = ''.join(format_exception(type_, value, traceback))
-    logger.debug(debug_traceback)
-
-
-sys.excepthook = _exception_handler
 
 
 def _populate_and_validate_config_values(private_ip, public_ip,
@@ -1181,9 +1166,13 @@ def main():
         db_node_set_master
     ], namespace='dbs')
 
-    parser.dispatch()
-
-    os.umask(current_umask)
+    try:
+        parser.dispatch()
+    except:
+        logger.exception('Error in cfy_manager')
+        raise
+    finally:
+        os.umask(current_umask)
 
 
 if __name__ == '__main__':
