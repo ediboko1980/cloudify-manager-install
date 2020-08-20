@@ -13,6 +13,10 @@ generate_test_cert $QUEUE2_IP
 mv $QUEUE2_IP.crt queue2_cert.pem
 mv $QUEUE2_IP.key queue2_key.pem
 
+generate_test_cert $QUEUE3_IP
+mv $QUEUE3_IP.crt queue3_cert.pem
+mv $QUEUE3_IP.key queue3_key.pem
+
 generate_test_cert $DB1_IP
 mv $DB1_IP.crt db1_cert.pem
 mv $DB1_IP.key db1_key.pem
