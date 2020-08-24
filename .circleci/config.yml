@@ -266,6 +266,7 @@ jobs:
           command: |
             sed -e "s/CONTAINER_IP/${QUEUE3_IP}/g" \
               -e "s/QUEUE1_IP/${QUEUE1_IP}/" \
+              -e "s/QUEUE2_IP/${QUEUE2_IP}/" \
               .circleci/cluster/queue3_config.yaml > queue3_config.yaml
             docker run \
               -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock -d \

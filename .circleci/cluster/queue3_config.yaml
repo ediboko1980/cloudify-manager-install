@@ -12,6 +12,9 @@ rabbitmq:
     rabbit1:
       networks:
         default: QUEUE1_IP
+    rabbit2:
+      networks:
+        default: QUEUE2_IP
     rabbit3:
       networks:
         default: CONTAINER_IP
